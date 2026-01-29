@@ -8,30 +8,18 @@ project_name/
 │   ├── apis/
 │   │   ├── __init__.py
 │   │   └── v1.py
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── alembic_models_import.py
-│   │   ├── celery_app.py
-│   │   ├── crud.py
-│   │   ├── database.py
-│   │   ├── exceptions.py
-│   │   ├── logging.py
-│   │   ├── main.py
-│   │   ├── middleware.py
-│   │   ├── models.py
-│   │   └── settings.py
-│   └── user/
+│   └── core/
 │       ├── __init__.py
-│       ├── models.py
-│       ├── schemas.py
+│       ├── alembic_models_import.py
+│       ├── celery_app.py
 │       ├── crud.py
+│       ├── database.py
 │       ├── exceptions.py
-│       ├── routes.py
-│       └── auth_management/
-│           ├── __init__.py
-│           ├── routes.py
-│           ├── service.py
-│           └── utils.py
+│       ├── logging.py
+│       ├── main.py
+│       ├── middleware.py
+│       ├── models.py
+│       └── settings.py
 ├── migrations/
 │   ├── env.py
 │   ├── script.py.mako
@@ -48,6 +36,9 @@ project_name/
 ├── .gitignore
 ├── fcube.py
 └── README.md
+
+NOTE: User module is NOT created by default.
+Use `fcube adduser` to add authentication with configurable options.
 """
 
 import typer
@@ -77,20 +68,8 @@ from ..templates.project import (
     generate_core_middleware,
     generate_core_celery,
     generate_core_alembic_models,
-    # User templates
-    generate_user_init,
-    generate_user_models,
-    generate_user_schemas,
-    generate_user_crud,
-    generate_user_exceptions,
-    generate_user_routes,
-    generate_user_auth_init,
-    generate_user_auth_routes,
-    generate_user_auth_service,
-    generate_user_auth_utils,
     # API templates
     generate_apis_init,
-    generate_apis_v1,
     # Project root templates
     generate_docker_compose,
     generate_dockerfile,
@@ -108,6 +87,49 @@ from ..templates.project import (
 )
 
 console = Console()
+
+
+def _generate_apis_v1_minimal() -> str:
+    """Generate minimal apis/v1.py without user module."""
+    return '''"""
+API Version 1 Router.
+
+Aggregates all module routers for API v1.
+"""
+
+from fastapi import APIRouter
+
+# Version 1 API Router
+router = APIRouter(prefix="/v1")
+
+# Add module routers as you create them:
+# from app.product.routes import router as product_router
+# router.include_router(product_router)
+
+# To add user authentication, run:
+# fcube adduser --auth-type email
+'''
+
+
+def _generate_alembic_models_minimal() -> str:
+    """Generate minimal alembic_models_import.py without user module."""
+    return '''"""
+Alembic Models Import
+
+This file imports all models for Alembic autogenerate to detect.
+Add imports for all your models here.
+"""
+
+# Import Base for metadata
+from app.core.models import Base
+
+# Add model imports as you create modules:
+# from app.product.models import Product
+# from app.order.models import Order
+
+# If you add the user module, uncomment:
+# from app.user.models import User, Role, Permission
+'''
 
 
 def startproject_command(
@@ -154,8 +176,6 @@ def startproject_command(
         project_dir / "app",
         project_dir / "app" / "apis",
         project_dir / "app" / "core",
-        project_dir / "app" / "user",
-        project_dir / "app" / "user" / "auth_management",
         project_dir / "migrations",
         project_dir / "migrations" / "versions",
         project_dir / "logs",
@@ -186,7 +206,7 @@ def startproject_command(
         (project_dir / "app" / "core" / "logging.py", generate_core_logging()),
         (project_dir / "app" / "core" / "main.py", generate_core_main(project_snake, project_pascal)),
         (project_dir / "app" / "core" / "middleware.py", generate_core_middleware()),
-        (project_dir / "app" / "core" / "alembic_models_import.py", generate_core_alembic_models()),
+        (project_dir / "app" / "core" / "alembic_models_import.py", _generate_alembic_models_minimal()),
     ])
     
     if with_celery:
@@ -194,25 +214,10 @@ def startproject_command(
             (project_dir / "app" / "core" / "celery_app.py", generate_core_celery())
         )
     
-    # === APIs ===
+    # === APIs (minimal without user) ===
     files_to_create.extend([
         (project_dir / "app" / "apis" / "__init__.py", generate_apis_init()),
-        (project_dir / "app" / "apis" / "v1.py", generate_apis_v1()),
-    ])
-    
-    # === User module ===
-    files_to_create.extend([
-        (project_dir / "app" / "user" / "__init__.py", generate_user_init()),
-        (project_dir / "app" / "user" / "models.py", generate_user_models()),
-        (project_dir / "app" / "user" / "schemas.py", generate_user_schemas()),
-        (project_dir / "app" / "user" / "crud.py", generate_user_crud()),
-        (project_dir / "app" / "user" / "exceptions.py", generate_user_exceptions()),
-        (project_dir / "app" / "user" / "routes.py", generate_user_routes()),
-        # Auth management
-        (project_dir / "app" / "user" / "auth_management" / "__init__.py", generate_user_auth_init()),
-        (project_dir / "app" / "user" / "auth_management" / "routes.py", generate_user_auth_routes()),
-        (project_dir / "app" / "user" / "auth_management" / "service.py", generate_user_auth_service()),
-        (project_dir / "app" / "user" / "auth_management" / "utils.py", generate_user_auth_utils()),
+        (project_dir / "app" / "apis" / "v1.py", _generate_apis_v1_minimal()),
     ])
     
     # === Migrations ===
@@ -276,6 +281,7 @@ def startproject_command(
     summary_table.add_row("[bold]Files Created:[/bold]", f"[green]{len(created_files)}[/green]")
     summary_table.add_row("[bold]Docker:[/bold]", f"[{'green' if with_docker else 'yellow'}]{'Yes' if with_docker else 'No'}[/]")
     summary_table.add_row("[bold]Celery:[/bold]", f"[{'green' if with_celery else 'yellow'}]{'Yes' if with_celery else 'No'}[/]")
+    summary_table.add_row("[bold]User Module:[/bold]", f"[yellow]Not included (use adduser)[/yellow]")
 
     if skipped_files:
         summary_table.add_row("[bold]Files Skipped:[/bold]", f"[yellow]{len(skipped_files)}[/yellow]")
@@ -296,26 +302,36 @@ def startproject_command(
    [dim]pip install uv  # If not installed
    uv pip install -r pyproject.toml[/dim]
 
-[bold cyan]4. Start services with Docker (recommended)[/bold cyan]
+[bold cyan]4. Add user authentication (optional)[/bold cyan]
+   [dim]# Email + Password authentication
+   python fcube.py adduser --auth-type email
+   
+   # Phone OTP authentication
+   python fcube.py adduser --auth-type phone
+   
+   # Both email and phone
+   python fcube.py adduser --auth-type both[/dim]
+
+[bold cyan]5. Start services with Docker (recommended)[/bold cyan]
    [dim]docker-compose up -d postgres redis
    # Wait for services to be healthy[/dim]
 
-[bold cyan]5. Run migrations[/bold cyan]
+[bold cyan]6. Run migrations[/bold cyan]
    [dim]alembic revision --autogenerate -m "Initial migration"
    alembic upgrade head[/dim]
 
-[bold cyan]6. Start the application[/bold cyan]
+[bold cyan]7. Start the application[/bold cyan]
    [dim]# With Docker:
    docker-compose up -d
    
    # Or locally:
    uvicorn app.core.main:app --reload[/dim]
 
-[bold cyan]7. Access your API[/bold cyan]
+[bold cyan]8. Access your API[/bold cyan]
    [dim]API Docs: http://localhost:8000/docs
    Health:   http://localhost:8000/health[/dim]
 
-[bold cyan]8. Create new modules[/bold cyan]
+[bold cyan]9. Create new modules[/bold cyan]
    [dim]python fcube.py startmodule Product[/dim]
 """
 

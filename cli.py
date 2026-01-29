@@ -5,7 +5,8 @@ The main Typer application for FCube - a FastAPI project and module generator
 that follows the industry-standard architecture patterns.
 
 Commands:
-- startproject: Create a new FastAPI project with core and user modules
+- startproject: Create a new FastAPI project with core module (no user by default)
+- adduser: Add user module with configurable authentication (email, phone, both)
 - startmodule: Create a new module with complete folder structure
 - addentity: Add a new entity to an existing module
 - listmodules: List all existing modules
@@ -19,6 +20,7 @@ from typing import Optional
 from .commands.startproject import startproject_command
 from .commands.startmodule import startmodule_command
 from .commands.addentity import addentity_command
+from .commands.adduser import adduser_command, AuthType
 from .commands.listmodules import listmodules_command
 
 # Initialize Typer app
@@ -64,12 +66,14 @@ def startproject(
     This command generates a production-ready FastAPI project including:
 
     • Core module (database, settings, logging, exceptions)
-    • User module with authentication
     • Docker & docker-compose configuration
     • Alembic migrations setup
     • Celery for background tasks
     • Redis for caching
     • PostgreSQL database
+
+    NOTE: User module is NOT created by default.
+    Use 'fcube adduser' to add authentication.
 
     [bold cyan]Examples:[/bold cyan]
 
@@ -84,6 +88,54 @@ def startproject(
         directory=directory,
         with_celery=with_celery,
         with_docker=with_docker,
+        force=force
+    )
+
+
+@app.command("adduser")
+def adduser(
+    directory: str = typer.Option(
+        "app",
+        "--dir",
+        "-d",
+        help="Directory where the user module will be created"
+    ),
+    auth_type: AuthType = typer.Option(
+        AuthType.EMAIL,
+        "--auth-type",
+        "-a",
+        help="Authentication type: email, phone, or both"
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite existing files"
+    ),
+):
+    """
+    👤 Add user module with configurable authentication.
+
+    Creates a complete user module with authentication system.
+    Choose from different authentication strategies:
+
+    • email: Email + Password with JWT tokens
+    • phone: Phone + OTP with SMS verification
+    • both: Combined email and phone authentication
+
+    [bold cyan]Examples:[/bold cyan]
+
+      $ python fcube.py adduser --auth-type email
+
+      $ python fcube.py adduser --auth-type phone
+
+      $ python fcube.py adduser --auth-type both
+
+      $ python fcube.py adduser -a email --force
+    """
+    adduser_command(
+        directory=directory,
+        auth_type=auth_type,
         force=force
     )
 

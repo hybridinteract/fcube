@@ -1,11 +1,17 @@
 """
 FCube Project Templates Package.
 
-Contains code generation templates for complete FastAPI project setup.
+Contains modular code generation templates for complete FastAPI project setup.
+
+Structure:
+- core/   - Core module templates (database, settings, logging, etc.)
+- user/   - User module templates (models, auth, permissions)
+- infra/  - Infrastructure templates (Docker, Alembic, project files)
+- api_templates.py - API routing templates
 """
 
-# Core module templates
-from .core_templates import (
+# Core module templates (from modular subpackage)
+from .core import (
     generate_core_init,
     generate_core_models,
     generate_core_database,
@@ -19,8 +25,8 @@ from .core_templates import (
     generate_core_alembic_models,
 )
 
-# User module templates
-from .user_templates import (
+# User module templates (from modular subpackage)
+from .user import (
     generate_user_init,
     generate_user_models,
     generate_user_schemas,
@@ -31,16 +37,13 @@ from .user_templates import (
     generate_user_auth_routes,
     generate_user_auth_service,
     generate_user_auth_utils,
+    generate_user_permission_init,
+    generate_user_permission_utils,
+    generate_user_permission_scoped_access,
 )
 
-# API templates
-from .api_templates import (
-    generate_apis_init,
-    generate_apis_v1,
-)
-
-# Infrastructure templates
-from .infra_templates import (
+# Infrastructure templates (from modular subpackage)
+from .infra import (
     generate_docker_compose,
     generate_dockerfile,
     generate_docker_entrypoint,
@@ -54,6 +57,12 @@ from .infra_templates import (
     generate_gitignore,
     generate_project_readme,
     generate_fcube_script,
+)
+
+# API templates
+from .api_templates import (
+    generate_apis_init,
+    generate_apis_v1,
 )
 
 __all__ = [
@@ -80,9 +89,9 @@ __all__ = [
     "generate_user_auth_routes",
     "generate_user_auth_service",
     "generate_user_auth_utils",
-    # API
-    "generate_apis_init",
-    "generate_apis_v1",
+    "generate_user_permission_init",
+    "generate_user_permission_utils",
+    "generate_user_permission_scoped_access",
     # Infrastructure
     "generate_docker_compose",
     "generate_dockerfile",
@@ -97,4 +106,7 @@ __all__ = [
     "generate_gitignore",
     "generate_project_readme",
     "generate_fcube_script",
+    # API
+    "generate_apis_init",
+    "generate_apis_v1",
 ]

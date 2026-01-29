@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
 authors = [
-    { name = "Korab Development Team", email = "dev@korab.com" },
+    { name = "Amal Babu", email = "amalbabu1200@gmail.com" },
 ]
 keywords = ["fastapi", "generator", "cli", "architecture"]
 classifiers = [
