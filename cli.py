@@ -7,6 +7,7 @@ that follows the industry-standard architecture patterns.
 Commands:
 - startproject: Create a new FastAPI project with core module (no user by default)
 - adduser: Add user module with configurable authentication (email, phone, both)
+- addplugin: Add pre-built plugin modules (referral, notifications, etc.)
 - startmodule: Create a new module with complete folder structure
 - addentity: Add a new entity to an existing module
 - listmodules: List all existing modules
@@ -21,6 +22,7 @@ from .commands.startproject import startproject_command
 from .commands.startmodule import startmodule_command
 from .commands.addentity import addentity_command
 from .commands.adduser import adduser_command, AuthType
+from .commands.addplugin import addplugin_command
 from .commands.listmodules import listmodules_command
 
 # Initialize Typer app
@@ -137,6 +139,56 @@ def adduser(
         directory=directory,
         auth_type=auth_type,
         force=force
+    )
+
+
+@app.command("addplugin")
+def addplugin(
+    plugin_name: str = typer.Argument(
+        None,
+        help="Name of the plugin to add (e.g., referral)"
+    ),
+    directory: str = typer.Option(
+        "app",
+        "--dir",
+        "-d",
+        help="Directory where the plugin will be created"
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite existing files"
+    ),
+    list_plugins: bool = typer.Option(
+        False,
+        "--list",
+        "-l",
+        help="List all available plugins"
+    ),
+):
+    """
+    🔌 Add a pre-built plugin module to your project.
+
+    Plugins are self-contained feature modules that can be added
+    to any FCube-generated project. Available plugins:
+
+    • referral: User referral system with completion strategies
+    • (more coming soon...)
+
+    [bold cyan]Examples:[/bold cyan]
+
+      $ python fcube.py addplugin --list
+
+      $ python fcube.py addplugin referral
+
+      $ python fcube.py addplugin referral --force
+    """
+    addplugin_command(
+        plugin_name=plugin_name,
+        directory=directory,
+        force=force,
+        list_plugins=list_plugins
     )
 
 
