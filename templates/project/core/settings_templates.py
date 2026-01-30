@@ -125,6 +125,94 @@ class Settings(BaseSettings):
         description="Number of backup log files to keep"
     )
 
+    # ==================== Celery Settings ====================
+    celery_broker_url: str = Field(
+        default="redis://localhost:6379/0",
+        description="Celery broker URL (Redis)"
+    )
+    celery_result_backend: str = Field(
+        default="redis://localhost:6379/1",
+        description="Celery result backend URL (Redis)"
+    )
+
+    # Task execution settings
+    CELERY_TASK_TRACK_STARTED: bool = Field(
+        default=True,
+        description="Track when tasks are started"
+    )
+    CELERY_TASK_TIME_LIMIT: int = Field(
+        default=300,
+        description="Hard time limit for tasks in seconds"
+    )
+    CELERY_TASK_SOFT_TIME_LIMIT: int = Field(
+        default=240,
+        description="Soft time limit for tasks in seconds"
+    )
+    CELERY_TASK_ACKS_LATE: bool = Field(
+        default=True,
+        description="Acknowledge tasks after execution (not on receive)"
+    )
+    CELERY_TASK_REJECT_ON_WORKER_LOST: bool = Field(
+        default=True,
+        description="Reject tasks if worker is lost"
+    )
+    CELERY_TASK_COMPRESSION: str = Field(
+        default="",
+        description="Task compression algorithm (gzip, bzip2, or empty)"
+    )
+
+    # Worker settings
+    CELERY_WORKER_POOL: str = Field(
+        default="prefork",
+        description="Worker pool type (prefork, solo, threads)"
+    )
+    CELERY_WORKER_PREFETCH_MULTIPLIER: int = Field(
+        default=4,
+        description="Number of tasks to prefetch per worker"
+    )
+    CELERY_WORKER_MAX_TASKS_PER_CHILD: int = Field(
+        default=500,
+        description="Max tasks before worker process restart"
+    )
+    CELERY_WORKER_LOST_WAIT: int = Field(
+        default=10,
+        description="Seconds to wait for lost worker"
+    )
+
+    # Broker settings
+    CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP: bool = Field(
+        default=True,
+        description="Retry broker connection on startup"
+    )
+    CELERY_BROKER_CONNECTION_MAX_RETRIES: int = Field(
+        default=10,
+        description="Max broker connection retries"
+    )
+
+    # Result backend settings
+    CELERY_RESULT_EXPIRES: int = Field(
+        default=3600,
+        description="Result expiration time in seconds"
+    )
+    CELERY_RESULT_BACKEND_THREAD_SAFE: bool = Field(
+        default=True,
+        description="Thread-safe result backend"
+    )
+
+    # Celery database pool settings (for async tasks)
+    CELERY_DB_POOL_SIZE: int = Field(
+        default=3,
+        description="DB pool size per worker"
+    )
+    CELERY_DB_MAX_OVERFLOW: int = Field(
+        default=5,
+        description="Max overflow connections per worker"
+    )
+    CELERY_DB_POOL_RECYCLE: int = Field(
+        default=1800,
+        description="Connection recycle time in seconds"
+    )
+
     # ==================== Computed Properties ====================
     @property
     def database_url(self) -> str:

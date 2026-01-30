@@ -23,6 +23,8 @@ from .core import (
     generate_core_middleware,
     generate_core_celery,
     generate_core_alembic_models,
+    # Background task framework (production-grade)
+    generate_background_module_files,
 )
 
 # User module templates (from modular subpackage)
@@ -78,6 +80,8 @@ __all__ = [
     "generate_core_middleware",
     "generate_core_celery",
     "generate_core_alembic_models",
+    # Background task framework
+    "generate_background_module_files",
     # User
     "generate_user_init",
     "generate_user_models",

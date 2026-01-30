@@ -68,6 +68,8 @@ from ..templates.project import (
     generate_core_middleware,
     generate_core_celery,
     generate_core_alembic_models,
+    # Background task framework templates
+    generate_background_module_files,
     # API templates
     generate_apis_init,
     # Project root templates
@@ -170,7 +172,7 @@ def startproject_command(
 
     # Create directory structure
     console.print(f"[cyan]📁 Creating project structure...[/cyan]")
-    
+
     directories_to_create = [
         project_dir,
         project_dir / "app",
@@ -180,10 +182,18 @@ def startproject_command(
         project_dir / "migrations" / "versions",
         project_dir / "logs",
     ]
-    
+
     if with_docker:
         directories_to_create.append(project_dir / "docker")
-    
+
+    if with_celery:
+        # Background task framework directories
+        directories_to_create.extend([
+            project_dir / "app" / "core" / "background",
+            project_dir / "app" / "core" / "background" / "internals",
+            project_dir / "app" / "core" / "background" / "extras",
+        ])
+
     for dir_path in directories_to_create:
         ensure_directory(dir_path)
 
@@ -208,10 +218,12 @@ def startproject_command(
         (project_dir / "app" / "core" / "middleware.py", generate_core_middleware()),
         (project_dir / "app" / "core" / "alembic_models_import.py", _generate_alembic_models_minimal()),
     ])
-    
+
     if with_celery:
-        files_to_create.append(
-            (project_dir / "app" / "core" / "celery_app.py", generate_core_celery())
+        # Generate full background task framework module
+        background_dir = project_dir / "app" / "core" / "background"
+        files_to_create.extend(
+            generate_background_module_files(background_dir, project_snake, project_pascal)
         )
     
     # === APIs (minimal without user) ===

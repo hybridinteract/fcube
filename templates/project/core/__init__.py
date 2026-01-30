@@ -9,6 +9,7 @@ Contains modular template generators for the core module:
 - Logging
 - Main app
 - Celery
+- Background task framework
 """
 
 # Database templates
@@ -44,10 +45,15 @@ from .app_templates import (
     generate_core_middleware,
 )
 
-# Celery templates
+# Celery templates (basic)
 from .celery_templates import (
     generate_core_celery,
     generate_core_alembic_models,
+)
+
+# Background task framework templates (production-grade)
+from .background import (
+    generate_background_module_files,
 )
 
 __all__ = [
@@ -66,7 +72,9 @@ __all__ = [
     # App
     "generate_core_main",
     "generate_core_middleware",
-    # Celery
+    # Celery (basic)
     "generate_core_celery",
     "generate_core_alembic_models",
+    # Background task framework (production-grade)
+    "generate_background_module_files",
 ]

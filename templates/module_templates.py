@@ -434,64 +434,92 @@ __all__ = [
 
 def generate_tasks(module_name: str, class_name: str) -> str:
     """
-    Generate tasks.py file for Celery background tasks.
+    Generate tasks.py file using the background task framework.
+
+    Uses @simple_task and @db_task decorators from the background module.
     """
     return f'''"""
 {class_name} Module Background Tasks.
 
-Celery tasks for {module_name} operations.
+Uses the background task framework with @simple_task and @db_task decorators.
 
 Usage:
     from .tasks import process_{module_name}_created
-    
+
     # In service after commit:
     process_{module_name}_created.delay(str({module_name}.id))
 """
 
-from celery import shared_task
-
+from app.core.background import simple_task, db_task, TaskContext
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-@shared_task(bind=True, max_retries=3)
-def process_{module_name}_created(self, {module_name}_id: str):
+@simple_task(
+    name="app.{module_name}.tasks.process_{module_name}_created",
+    retry_policy="standard",
+    queue="default"
+)
+def process_{module_name}_created(ctx: TaskContext, {module_name}_id: str):
     """
     Background task triggered when a {module_name} is created.
-    
+
     Use for:
     - Sending notifications
     - Updating analytics
     - External API calls
-    
+
     Args:
+        ctx: TaskContext with logging and result helpers
         {module_name}_id: UUID string of the created {module_name}
+
+    Returns:
+        dict: Success result with task details
     """
-    try:
-        logger.info(f"Processing {module_name} created: {{{module_name}_id}}")
-        # Add your background processing logic here
-        logger.info(f"Finished processing {module_name}: {{{module_name}_id}}")
-    except Exception as exc:
-        logger.error(f"Error processing {module_name} {{{module_name}_id}}: {{exc}}")
-        raise self.retry(exc=exc, countdown=60)
+    ctx.log_info(f"Processing {module_name} created: {{{module_name}_id}}")
+    # Add your background processing logic here
+    ctx.log_success(f"Finished processing {module_name}: {{{module_name}_id}}")
+    return ctx.success_result({module_name}_id={module_name}_id)
 
 
-@shared_task(bind=True, max_retries=3)
-def process_{module_name}_updated(self, {module_name}_id: str):
+@db_task(
+    name="app.{module_name}.tasks.update_{module_name}_status",
+    retry_policy="standard",
+    queue="default"
+)
+async def update_{module_name}_status(ctx: TaskContext, {module_name}_id: str, status: str):
     """
-    Background task triggered when a {module_name} is updated.
-    
+    Background task for updating {module_name} status with database access.
+
     Args:
-        {module_name}_id: UUID string of the updated {module_name}
+        ctx: TaskContext with session, logging, and result helpers
+        {module_name}_id: UUID string of the {module_name}
+        status: New status to set
+
+    Returns:
+        dict: Success result with task details
     """
-    try:
-        logger.info(f"Processing {module_name} updated: {{{module_name}_id}}")
-        # Add your background processing logic here
-        logger.info(f"Finished processing {module_name} update: {{{module_name}_id}}")
-    except Exception as exc:
-        logger.error(f"Error processing {module_name} update {{{module_name}_id}}: {{exc}}")
-        raise self.retry(exc=exc, countdown=60)
+    {module_name}_uuid = ctx.validate_uuid({module_name}_id, "{module_name}_id")
+    ctx.log_info(f"Updating {module_name} status", {module_name}_id={module_name}_id, status=status)
+
+    # Example: Update in database
+    # {module_name} = await {module_name}_crud.get(ctx.session, {module_name}_uuid)
+    # if not {module_name}:
+    #     raise ctx.not_found_error(f"{class_name} not found", {module_name}_id={module_name}_id)
+    # {module_name}.status = status
+    # Session auto-commits on success
+
+    ctx.log_success(f"Updated {module_name} status", {module_name}_id={module_name}_id, status=status)
+    return ctx.success_result({module_name}_id={module_name}_id, status=status)
+
+
+# ==================== Export Tasks ====================
+
+__all__ = [
+    "process_{module_name}_created",
+    "update_{module_name}_status",
+]
 '''
 
 
