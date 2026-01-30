@@ -70,6 +70,39 @@ class Settings(BaseSettings):
         default="http://localhost:3000,http://localhost:8000",
         description="Comma-separated list of allowed origins"
     )
+    CORS_ALLOW_CREDENTIALS: bool = Field(
+        default=True,
+        description="Allow credentials in CORS requests"
+    )
+    CORS_ALLOW_METHODS: List[str] = Field(
+        default=["*"],
+        description="Allowed HTTP methods for CORS"
+    )
+    CORS_ALLOW_HEADERS: List[str] = Field(
+        default=["*"],
+        description="Allowed headers for CORS"
+    )
+    CORS_ORIGIN_REGEX: str = Field(
+        default="",
+        description="Regex pattern for CORS origin matching"
+    )
+
+    # ==================== Security Settings (Middleware) ====================
+    TRUSTED_HOSTS: List[str] = Field(
+        default=["*"],
+        description="Trusted hosts for production (use specific domains in production)"
+    )
+
+    # ==================== Compression Settings ====================
+    ENABLE_GZIP: bool = Field(
+        default=True,
+        description="Enable GZip compression for responses"
+    )
+    GZIP_MINIMUM_SIZE: int = Field(
+        default=1000,
+        ge=0,
+        description="Minimum response size in bytes to trigger GZip compression"
+    )
 
     # ==================== Redis Settings ====================
     REDIS_HOST: str = Field(default="localhost", description="Redis host")
@@ -79,6 +112,18 @@ class Settings(BaseSettings):
 
     # ==================== Logging Settings ====================
     LOG_LEVEL: str = Field(default="INFO", description="Logging level")
+    ENABLE_FILE_LOGGING: bool = Field(
+        default=True,
+        description="Enable logging to files"
+    )
+    LOG_FILE_MAX_SIZE: int = Field(
+        default=10485760,  # 10MB
+        description="Maximum size of log file in bytes before rotation"
+    )
+    LOG_FILE_BACKUP_COUNT: int = Field(
+        default=5,
+        description="Number of backup log files to keep"
+    )
 
     # ==================== Computed Properties ====================
     @property

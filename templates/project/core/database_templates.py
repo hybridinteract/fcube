@@ -153,5 +153,5 @@ async def shutdown_db() -> None:
     logger.info("Database engine disposed")
 
 
-__all__ = ["Base", "get_session", "verify_db_connection", "shutdown_db", "engine", "get_database_url"]
+__all__ = ["Base", "get_session", "verify_db_connection", "shutdown_db", "engine", "get_database_url", "async_session_factory"]
 '''
