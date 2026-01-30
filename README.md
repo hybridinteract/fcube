@@ -20,24 +20,80 @@ FCube CLI is a powerful code generation tool that creates production-ready FastA
 
 ## Installation & Usage
 
-You can install FCube directly from the source or run it as a script.
+FCube can be installed globally on your system for easy access from anywhere, or run directly from source.
 
-### Option 1: Install as a Tool (Recommended)
+### Option 1: Install from GitHub (Recommended)
+
+Install the latest version directly from the GitHub repository:
 
 ```bash
-# From within the directory
+# Using pip
+pip install git+https://github.com/amal-babu-git/fcube.git
+
+# Using uv (faster)
+uv tool install git+https://github.com/amal-babu-git/fcube.git
+
+# Then use the command globally
+fcube startproject MyProject
+fcube --help
+```
+
+### Option 2: Install from Local Source
+
+Clone the repository and install locally:
+
+```bash
+# Clone the repository
+git clone https://github.com/amal-babu-git/fcube.git
+cd fcube
+
+# Install globally using pip
 pip install .
 
-# Then use the command directly
-fcube startproject MyProject
+# Or install in editable mode for development
+pip install -e .
+
+# Using uv (recommended for development)
+uv sync  # Creates venv and installs dependencies
+source .venv/bin/activate  # Activate the environment
+fcube --help
 ```
 
-### Option 2: Run without Installation
+### Option 3: Run Without Installation
+
+Run directly as a Python module without global installation:
 
 ```bash
-# Run using python module syntax
+# Clone the repository first
+git clone https://github.com/amal-babu-git/fcube.git
+cd fcube
+
+# Run using uv (handles dependencies automatically)
+uv run fcube startproject MyProject
+
+# Or using python module syntax
 python -m fcube startproject MyProject
 ```
+
+### Option 4: Install from PyPI (Coming Soon)
+
+Once published to PyPI, you'll be able to install with:
+
+```bash
+# Using pip
+pip install fcube
+
+# Using uv
+uv tool install fcube
+```
+
+### Verify Installation
+
+```bash
+fcube --version
+fcube --help
+```
+
 
 ## Commands Overview
 

@@ -35,4 +35,30 @@ dependencies = [
 fcube = "fcube.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["."]
+only-include = [
+    "__init__.py",
+    "__main__.py",
+    "cli.py",
+    "commands",
+    "templates",
+    "utils",
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+"__init__.py" = "fcube/__init__.py"
+"__main__.py" = "fcube/__main__.py"
+"cli.py" = "fcube/cli.py"
+"commands" = "fcube/commands"
+"templates" = "fcube/templates"
+"utils" = "fcube/utils"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "*.py",
+    "commands",
+    "templates",
+    "utils",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
