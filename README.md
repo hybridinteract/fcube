@@ -4,7 +4,7 @@
 
 FCube CLI is a powerful code generation tool that creates production-ready FastAPI projects and modules following clean architecture principles, dependency injection patterns, and role-based access control.
 
-## ✨ Features
+## Features
 
 - **Complete Project Scaffolding**: Generate full FastAPI projects with core infrastructure
 - **Modular User System**: Add user module separately with configurable authentication (email, phone, or both)
@@ -18,7 +18,7 @@ FCube CLI is a powerful code generation tool that creates production-ready FastA
 - **Transaction Management**: "No Commit in CRUD" pattern
 - **Rich CLI**: Beautiful terminal output with progress indicators
 
-## 🚀 Installation & Usage
+## Installation & Usage
 
 You can install FCube directly from the source or run it as a script.
 
@@ -39,7 +39,7 @@ fcube startproject MyProject
 python -m fcube startproject MyProject
 ```
 
-## 📖 Commands Overview
+## Commands Overview
 
 | Command | Description |
 |---------|-------------|
@@ -53,7 +53,7 @@ python -m fcube startproject MyProject
 
 ---
 
-## 📖 Commands
+## Commands
 
 ### `startproject` - Create New Project
 
@@ -369,7 +369,7 @@ fcube version
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 FCube follows the **Layered Architecture** pattern:
 
@@ -458,7 +458,7 @@ async def create_product(...):
 
 ---
 
-## 📦 What Gets Generated
+## What Gets Generated
 
 ### Project Level (`startproject`)
 
@@ -501,7 +501,7 @@ async def create_product(...):
 
 ---
 
-## 🔧 Customization
+## Customization
 
 ### Template Structure
 
@@ -531,7 +531,7 @@ fcube/templates/
 ├── schema_templates.py       # Pydantic schemas
 ├── crud_templates.py         # CRUD operations
 ├── service_templates.py      # Service layer
-└── route_templates.py        # API routes
+├── route_templates.py        # API routes
 ```
 
 ### Adding New Plugins
@@ -585,7 +585,7 @@ def mycommand(arg: str):
 
 ---
 
-## 🎯 Quick Start Guide
+## Quick Start Guide
 
 ```bash
 # 1. Create a new project
@@ -619,12 +619,12 @@ uvicorn app.core.main:app --reload
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
 - [PROJECT_ARCHITECTURE_GUIDE.md](../docs/PROJECT_ARCHITECTURE_GUIDE.md) - Full architecture reference
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - High-level design principles
 
-## 🤝 Contributing
+## Contributing
 
 When adding new templates or commands:
 
@@ -635,6 +635,6 @@ When adding new templates or commands:
 
 ---
 
-**Happy coding! 🚀**
+**Happy coding!**
 
 Created by the Korab Development Team
