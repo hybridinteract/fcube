@@ -9,10 +9,16 @@ Contains modular template generators for the user module:
 - Routes
 - Auth management
 - Permission management
+
+Supports different authentication strategies via AuthType:
+- email: Email + Password authentication
+- phone: Phone + OTP authentication  
+- both: Combined email and phone authentication
 """
 
 # Model templates
 from .model_templates import (
+    AuthType,
     generate_user_init,
     generate_user_models,
 )
@@ -53,6 +59,8 @@ from .permission_templates import (
 )
 
 __all__ = [
+    # AuthType enum
+    "AuthType",
     # Model
     "generate_user_init",
     "generate_user_models",

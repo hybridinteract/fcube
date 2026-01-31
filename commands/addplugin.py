@@ -1,7 +1,10 @@
 """
 Add Plugin Command - Universal command for adding plugin modules.
 
-Discovers and installs pre-built plugin modules like:
+Discovers and installs pre-built plugin modules. Each plugin is self-contained
+in its own folder under templates/plugins/ with its own installer function.
+
+Available Plugins:
 - referral: User referral system with completion strategies
 - (future) notifications: Push/email notification system
 - (future) audit: Audit logging system
@@ -9,6 +12,13 @@ Discovers and installs pre-built plugin modules like:
 Usage:
     fcube addplugin referral
     fcube addplugin --list  # Show available plugins
+
+Contributing New Plugins:
+1. Create folder: fcube/templates/plugins/your_plugin/
+2. Add __init__.py with PLUGIN_METADATA (including installer function)
+3. Add template files (model_templates.py, etc.)
+4. Register in fcube/templates/plugins/__init__.py (_discover_plugins)
+5. Done! This file does NOT need to be modified.
 """
 
 import typer
@@ -26,6 +36,7 @@ from ..utils.helpers import (
 from ..templates.plugins import (
     get_available_plugins,
     get_plugin,
+    install_plugin,
     PluginMetadata,
 )
 
@@ -59,72 +70,6 @@ def list_available_plugins():
     console.print("[dim]Usage: fcube addplugin <plugin_name>[/dim]")
 
 
-def install_referral_plugin(
-    app_dir: Path,
-    force: bool = False
-) -> List[Tuple[Path, str]]:
-    """Generate files for the referral plugin."""
-    from ..templates.plugins.referral import (
-        generate_referral_models,
-        generate_referral_config,
-        generate_referral_strategies,
-        generate_referral_exceptions,
-        generate_referral_dependencies,
-        generate_referral_tasks,
-        generate_referral_schemas,
-        generate_referral_schemas_init,
-        generate_referral_crud,
-        generate_referral_crud_init,
-        generate_referral_service,
-        generate_referral_service_init,
-        generate_referral_routes,
-        generate_referral_admin_routes,
-        generate_referral_routes_init,
-    )
-    from ..templates.plugins.referral.model_templates import generate_referral_init
-    
-    referral_dir = app_dir / "referral"
-    
-    # Create directories
-    directories = [
-        referral_dir,
-        referral_dir / "schemas",
-        referral_dir / "crud",
-        referral_dir / "services",
-        referral_dir / "routes",
-    ]
-    
-    for dir_path in directories:
-        ensure_directory(dir_path)
-    
-    # Generate files
-    files: List[Tuple[Path, str]] = [
-        # Root files
-        (referral_dir / "__init__.py", generate_referral_init()),
-        (referral_dir / "models.py", generate_referral_models()),
-        (referral_dir / "config.py", generate_referral_config()),
-        (referral_dir / "strategies.py", generate_referral_strategies()),
-        (referral_dir / "exceptions.py", generate_referral_exceptions()),
-        (referral_dir / "dependencies.py", generate_referral_dependencies()),
-        (referral_dir / "tasks.py", generate_referral_tasks()),
-        # Schemas
-        (referral_dir / "schemas" / "__init__.py", generate_referral_schemas_init()),
-        (referral_dir / "schemas" / "referral_schemas.py", generate_referral_schemas()),
-        # CRUD
-        (referral_dir / "crud" / "__init__.py", generate_referral_crud_init()),
-        (referral_dir / "crud" / "referral_crud.py", generate_referral_crud()),
-        # Services
-        (referral_dir / "services" / "__init__.py", generate_referral_service_init()),
-        (referral_dir / "services" / "referral_service.py", generate_referral_service()),
-        # Routes
-        (referral_dir / "routes" / "__init__.py", generate_referral_routes_init()),
-        (referral_dir / "routes" / "referral_routes.py", generate_referral_routes()),
-        (referral_dir / "routes" / "referral_admin_routes.py", generate_referral_admin_routes()),
-    ]
-    
-    return files
-
-
 def addplugin_command(
     plugin_name: str = None,
     directory: str = "app",
@@ -133,6 +78,9 @@ def addplugin_command(
 ):
     """
     Add a plugin module to your project.
+    
+    Plugins are self-contained modules that extend your project with
+    pre-built features like referral systems, notifications, etc.
     """
     # Handle --list flag
     if list_plugins or plugin_name is None:
@@ -147,6 +95,12 @@ def addplugin_command(
         console.print(f"[bold red]❌ Error:[/bold red] Unknown plugin '{plugin_name}'")
         console.print()
         list_available_plugins()
+        raise typer.Exit(1)
+    
+    # Check if plugin has installer
+    if not metadata.installer:
+        console.print(f"[bold red]❌ Error:[/bold red] Plugin '{plugin_name}' has no installer function")
+        console.print(f"[yellow]💡 Tip:[/yellow] The plugin needs an 'installer' function in its metadata")
         raise typer.Exit(1)
     
     # Define paths
@@ -178,14 +132,18 @@ def addplugin_command(
         console.print(f"[yellow]💡 Tip:[/yellow] Use --force to overwrite")
         raise typer.Exit(1)
     
-    # Generate files based on plugin
+    # Generate files using the plugin's self-contained installer
     console.print(f"[cyan]📁 Creating {plugin_name} module structure...[/cyan]")
     
-    if plugin_name == "referral":
-        files_to_create = install_referral_plugin(app_dir, force)
-    else:
-        console.print(f"[bold red]❌ Error:[/bold red] Plugin installer for '{plugin_name}' not implemented.")
+    try:
+        files_to_create = install_plugin(plugin_name, app_dir)
+    except Exception as e:
+        console.print(f"[bold red]❌ Error:[/bold red] Failed to generate plugin files: {e}")
         raise typer.Exit(1)
+    
+    # Ensure directories exist
+    for file_path, _ in files_to_create:
+        ensure_directory(file_path.parent)
     
     # Create files
     console.print(f"[cyan]📝 Generating files...[/cyan]\n")

@@ -27,10 +27,10 @@ class UserNotFoundError(HTTPException):
 class UserAlreadyExistsError(HTTPException):
     """Raised when user already exists."""
     
-    def __init__(self, email: str):
+    def __init__(self, identifier: str):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"User with email '{email}' already exists"
+            detail=f"User already exists: {identifier}"
         )
 
 
@@ -40,7 +40,7 @@ class InvalidCredentialsError(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -63,5 +63,35 @@ class InvalidTokenError(HTTPException):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=message,
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+class InvalidOTPError(HTTPException):
+    """Raised when OTP is invalid."""
+    
+    def __init__(self, message: str = "Invalid or expired OTP"):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message
+        )
+
+
+class OTPExpiredError(HTTPException):
+    """Raised when OTP has expired."""
+    
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OTP has expired"
+        )
+
+
+class OTPMaxAttemptsError(HTTPException):
+    """Raised when maximum OTP attempts exceeded."""
+    
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Maximum OTP attempts exceeded"
         )
 '''

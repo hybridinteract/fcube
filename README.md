@@ -514,6 +514,158 @@ async def create_product(...):
 
 ---
 
+## CLI Internal Architecture
+
+FCube follows a **simple, fast, and maintainable** approach for code generation:
+
+### Design Philosophy
+
+We use **Python functions that return f-strings** containing the file content to be generated. This approach is:
+
+- **Simple**: No complex templating engines like Jinja2 or Cookiecutter
+- **Fast**: Pure Python, no external template parsing
+- **Type-safe**: Full IDE support with Python type hints
+- **Easy to debug**: Just print the function output to see what will be generated
+
+### Directory Structure
+
+```
+fcube/
+├── cli.py                    # CLI entry point (Typer app)
+├── commands/                 # Command implementations
+│   ├── startproject.py       # Project scaffolding
+│   ├── startmodule.py        # Module generation
+│   ├── adduser.py            # User module (uses templates)
+│   └── addplugin.py          # Plugin installer
+├── templates/                # Template functions
+│   ├── __init__.py           # Template exports
+│   ├── model_templates.py    # Model generation functions
+│   ├── schema_templates.py   # Schema generation functions
+│   ├── crud_templates.py     # CRUD generation functions
+│   ├── project/              # Project-specific templates
+│   │   ├── core/             # Core module templates
+│   │   ├── user/             # User module templates
+│   │   └── infra/            # Docker, Alembic templates
+│   └── plugins/              # Plugin templates
+│       └── referral/         # Referral plugin
+└── utils/                    # Helper utilities
+    └── helpers.py            # File writing, case conversion
+```
+
+### How Templates Work
+
+Each template is a Python function that returns a string:
+
+```python
+# fcube/templates/model_templates.py
+
+def generate_model(module_snake: str, class_name: str) -> str:
+    """Generate a SQLAlchemy model file."""
+    return f'''"""
+{class_name} database model.
+"""
+
+from sqlalchemy import String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column
+from app.core.models import Base
+
+
+class {class_name}(Base):
+    __tablename__ = "{module_snake}s"
+    
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+'''
+```
+
+Commands import these functions and write their output to files:
+
+```python
+# fcube/commands/startmodule.py
+
+from ..templates import generate_model, generate_schemas, generate_crud
+
+def startmodule_command(module_name: str):
+    # Generate content using template functions
+    model_content = generate_model(module_snake, class_name)
+    
+    # Write to file
+    write_file(module_dir / "models.py", model_content)
+```
+
+### Adding New Commands
+
+1. **Create command file**: `fcube/commands/mycommand.py`
+2. **Create templates** (if needed): `fcube/templates/mycommand_templates.py`
+3. **Register in CLI**: `fcube/cli.py`
+
+### Adding New Plugin Modules
+
+Plugins are **self-contained** - each plugin folder has its own installer function.
+No need to modify `addplugin.py`!
+
+1. Create folder: `fcube/templates/plugins/my_plugin/`
+
+2. Add template files (e.g., `model_templates.py`):
+   ```python
+   def generate_my_plugin_model() -> str:
+       return '''"""MyPlugin model."""
+   from app.core.models import Base
+   
+   class MyPlugin(Base):
+       __tablename__ = "my_plugins"
+   '''
+   ```
+
+3. Create `__init__.py` with metadata AND installer:
+   ```python
+   from pathlib import Path
+   from typing import List, Tuple
+   from .. import PluginMetadata
+   from .model_templates import generate_my_plugin_model
+   
+   def install_my_plugin(app_dir: Path) -> List[Tuple[Path, str]]:
+       """Self-contained installer - returns list of (path, content)."""
+       plugin_dir = app_dir / "my_plugin"
+       return [
+           (plugin_dir / "__init__.py", '"""MyPlugin module."""'),
+           (plugin_dir / "models.py", generate_my_plugin_model()),
+       ]
+   
+   PLUGIN_METADATA = PluginMetadata(
+       name="my_plugin",
+       description="My awesome plugin",
+       version="1.0.0",
+       dependencies=[],
+       files_generated=["app/my_plugin/__init__.py", "app/my_plugin/models.py"],
+       config_required=False,
+       post_install_notes="Run migrations and start using!",
+       installer=install_my_plugin,  # <-- Self-contained!
+   )
+   ```
+
+4. Register in `fcube/templates/plugins/__init__.py`:
+   ```python
+   def _discover_plugins() -> None:
+       from .referral import PLUGIN_METADATA as referral_metadata
+       from .my_plugin import PLUGIN_METADATA as my_plugin_metadata  # Add this
+       register_plugin(referral_metadata)
+       register_plugin(my_plugin_metadata)  # Add this
+   ```
+
+5. Done! Run `fcube addplugin my_plugin`
+
+### Future Considerations
+
+The current f-string approach is intentionally simple and sufficient for most use cases. In the future, we may consider:
+
+- **Git-based templates**: `fcube addplugin --from git@github.com:org/plugin.git` for community plugins
+- **Template marketplace**: Centralized registry of community-contributed plugins
+- **Interactive scaffolding**: Prompt-based customization during generation
+
+However, for maintainability and simplicity, the current approach is preferred.
+
+---
+
 ## What Gets Generated
 
 ### Project Level (`startproject`)
@@ -592,28 +744,22 @@ fcube/templates/
 
 ### Adding New Plugins
 
-1. Create folder: `fcube/templates/plugins/your_plugin/`
+Plugins are **self-contained**. Each plugin folder contains:
+- Template files (`model_templates.py`, `schema_templates.py`, etc.)
+- `__init__.py` with `PLUGIN_METADATA` **and** `install_plugin()` function
 
-2. Add `__init__.py` with metadata:
-   ```python
-   from .. import PluginMetadata
-   
-   PLUGIN_METADATA = PluginMetadata(
-       name="your_plugin",
-       description="Description of your plugin",
-       version="1.0.0",
-       dependencies=["user"],  # Required modules
-       files_generated=[...],
-       config_required=True,
-       post_install_notes="Instructions..."
-   )
-   ```
+**No need to modify `addplugin.py`!** Just create your plugin folder and register it.
 
-3. Create template files for each component
+```
+fcube/templates/plugins/your_plugin/
+├── __init__.py           # PLUGIN_METADATA + install_your_plugin()
+├── model_templates.py    # def generate_your_plugin_model() -> str
+├── schema_templates.py   # def generate_your_plugin_schemas() -> str
+├── service_templates.py  # def generate_your_plugin_service() -> str
+└── route_templates.py    # def generate_your_plugin_routes() -> str
+```
 
-4. Register in `fcube/templates/plugins/__init__.py`
-
-5. Add installer in `fcube/commands/addplugin.py`
+See `fcube/templates/plugins/referral/` for a complete example.
 
 ### Adding New Commands
 
@@ -682,15 +828,227 @@ uvicorn app.core.main:app --reload
 
 ## Contributing
 
-When adding new templates or commands:
+FCube is designed to be **easy to contribute to**. The architecture follows a simple pattern that any Python developer can quickly understand.
 
-1. Follow existing code patterns
-2. Add proper type hints
-3. Include docstrings
-4. Test with various names (singular, plural, camelCase, snake_case)
+### Design Philosophy
+
+We use **Python functions that return f-strings** instead of complex templating engines:
+
+```python
+def generate_model(name: str) -> str:
+    return f'''"""
+{name} model.
+"""
+from app.core.models import Base
+
+class {name}(Base):
+    __tablename__ = "{name.lower()}s"
+'''
+```
+
+**Why this approach?**
+- **Simple**: No Jinja2, Cookiecutter, or complex template syntax
+- **Fast**: Pure Python string generation
+- **Type-safe**: Full IDE autocomplete and type checking
+- **Debuggable**: Just `print()` the function output to see what it generates
+
+### Adding a New Plugin (Easiest Way to Contribute)
+
+Each plugin is **self-contained** in its own folder. You don't need to touch `addplugin.py`!
+
+**Step 1: Create the plugin folder**
+
+```bash
+mkdir -p fcube/templates/plugins/my_plugin
+```
+
+**Step 2: Create template files**
+
+```python
+# fcube/templates/plugins/my_plugin/model_templates.py
+
+def generate_my_plugin_model() -> str:
+    return '''"""
+MyPlugin database model.
+"""
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
+from app.core.models import Base
+
+
+class MyPlugin(Base):
+    __tablename__ = "my_plugins"
+    
+    name: Mapped[str] = mapped_column(String(255))
+'''
+
+def generate_my_plugin_init() -> str:
+    return '''"""MyPlugin module."""
+
+from .models import MyPlugin
+
+__all__ = ["MyPlugin"]
+'''
+```
+
+**Step 3: Create `__init__.py` with metadata AND installer**
+
+```python
+# fcube/templates/plugins/my_plugin/__init__.py
+
+from pathlib import Path
+from typing import List, Tuple
+from .. import PluginMetadata
+from .model_templates import generate_my_plugin_model, generate_my_plugin_init
+
+
+def install_my_plugin(app_dir: Path) -> List[Tuple[Path, str]]:
+    """
+    Self-contained installer function.
+    Returns list of (file_path, file_content) tuples.
+    """
+    plugin_dir = app_dir / "my_plugin"
+    
+    return [
+        (plugin_dir / "__init__.py", generate_my_plugin_init()),
+        (plugin_dir / "models.py", generate_my_plugin_model()),
+        # Add more files as needed...
+    ]
+
+
+PLUGIN_METADATA = PluginMetadata(
+    name="my_plugin",
+    description="Description shown in fcube addplugin --list",
+    version="1.0.0",
+    dependencies=[],  # e.g., ["user"] if it requires user module
+    files_generated=[
+        "app/my_plugin/__init__.py",
+        "app/my_plugin/models.py",
+    ],
+    config_required=False,
+    post_install_notes="""
+1. Update alembic_models_import.py
+2. Run migrations
+3. Start using!
+""",
+    installer=install_my_plugin,  # <-- This is the key!
+)
+```
+
+**Step 4: Register the plugin**
+
+```python
+# fcube/templates/plugins/__init__.py
+
+def _discover_plugins() -> None:
+    from .referral import PLUGIN_METADATA as referral_metadata
+    from .my_plugin import PLUGIN_METADATA as my_plugin_metadata  # Add this line
+    
+    register_plugin(referral_metadata)
+    register_plugin(my_plugin_metadata)  # Add this line
+```
+
+**Step 5: Test it!**
+
+```bash
+fcube addplugin --list      # Should show your plugin
+fcube addplugin my_plugin   # Should install it
+```
+
+### Adding a New Command
+
+**Step 1: Create the command file**
+
+```python
+# fcube/commands/mycommand.py
+
+import typer
+from rich.console import Console
+
+console = Console()
+
+def mycommand_command(
+    name: str,
+    force: bool = False,
+):
+    """My custom command implementation."""
+    console.print(f"[bold blue]Running mycommand with: {name}[/bold blue]")
+    
+    # Your logic here...
+    
+    console.print("[bold green]Done![/bold green]")
+```
+
+**Step 2: Register in CLI**
+
+```python
+# fcube/cli.py
+
+from .commands.mycommand import mycommand_command
+
+@app.command("mycommand")
+def mycommand(
+    name: str = typer.Argument(..., help="Name argument"),
+    force: bool = typer.Option(False, "--force", "-f", help="Force overwrite"),
+):
+    """My custom command description."""
+    mycommand_command(name, force)
+```
+
+### Code Style Guidelines
+
+1. **Follow existing patterns** - Look at similar files for reference
+2. **Add type hints** - All functions should have proper type annotations
+3. **Include docstrings** - Document what each function does
+4. **Test with edge cases** - Try singular/plural, camelCase/snake_case names
+5. **Use Rich for output** - `console.print()` with formatting for nice CLI output
+
+### Project Structure Reference
+
+```
+fcube/
+├── __init__.py           # Package init
+├── cli.py                # Typer CLI entry point
+├── commands/             # Command implementations
+│   ├── startproject.py   # fcube startproject
+│   ├── startmodule.py    # fcube startmodule
+│   ├── adduser.py        # fcube adduser
+│   ├── addplugin.py      # fcube addplugin (generic)
+│   └── ...
+├── templates/            # Code generation templates
+│   ├── model_templates.py      # Generic model templates
+│   ├── schema_templates.py     # Generic schema templates
+│   ├── project/                # Project-specific templates
+│   │   ├── core/               # Core module templates
+│   │   ├── user/               # User module templates
+│   │   └── infra/              # Docker, Alembic templates
+│   └── plugins/                # Plugin templates
+│       ├── __init__.py         # Plugin registry
+│       └── referral/           # Example: referral plugin
+│           ├── __init__.py     # PLUGIN_METADATA + installer
+│           ├── model_templates.py
+│           └── ...
+└── utils/
+    └── helpers.py        # File writing, case conversion utilities
+```
+
+### Future Roadmap
+
+The current f-string approach is intentionally simple. Future enhancements may include:
+
+- **Git-based templates**: `fcube addplugin --from github.com/org/plugin`
+- **Template marketplace**: Community plugin registry
+- **Interactive mode**: Prompt-based customization
 
 ---
 
-**Happy coding!**
+## Related Documentation
+
+- [PROJECT_ARCHITECTURE_GUIDE.md](../docs/PROJECT_ARCHITECTURE_GUIDE.md) - Full architecture reference
+- [ARCHITECTURE.md](../ARCHITECTURE.md) - High-level design principles
+
+---
+
+**Happy coding!** 🧊
 
 Created by the Korab Development Team
