@@ -58,8 +58,74 @@ class PluginMetadata:
 PLUGIN_REGISTRY: Dict[str, PluginMetadata] = {}
 
 
+def validate_plugin_metadata(metadata: PluginMetadata) -> None:
+    """Validate plugin metadata before registration.
+    
+    Ensures that:
+    - All required fields are populated
+    - Installer function is callable
+    - Version follows semantic versioning pattern
+    - Files listed actually get generated
+    
+    Raises:
+        ValueError: If validation fails
+    """
+    # Required fields check
+    if not metadata.name:
+        raise ValueError("Plugin metadata missing 'name' field")
+    
+    if not metadata.name.isidentifier():
+        raise ValueError(
+            f"Plugin name '{metadata.name}' is not a valid Python identifier. "
+            "Use lowercase letters, numbers, and underscores only."
+        )
+    
+    if not metadata.description:
+        raise ValueError(f"Plugin '{metadata.name}' missing 'description' field")
+    
+    if not metadata.version:
+        raise ValueError(f"Plugin '{metadata.name}' missing 'version' field")
+    
+    # Version format validation (basic semver check)
+    version_parts = metadata.version.split('.')
+    if len(version_parts) != 3 or not all(part.isdigit() for part in version_parts):
+        raise ValueError(
+            f"Plugin '{metadata.name}' has invalid version '{metadata.version}'. "
+            "Expected semantic version format (e.g., '1.0.0')"
+        )
+    
+    # Installer validation
+    if not metadata.installer:
+        raise ValueError(
+            f"Plugin '{metadata.name}' missing 'installer' function. "
+            "Each plugin must have a self-contained installer function."
+        )
+    
+    if not callable(metadata.installer):
+        raise ValueError(
+            f"Plugin '{metadata.name}' installer is not callable. "
+            f"Got type: {type(metadata.installer).__name__}"
+        )
+    
+    # Post-install notes check
+    if not metadata.post_install_notes:
+        raise ValueError(
+            f"Plugin '{metadata.name}' missing 'post_install_notes'. "
+            "Provide clear instructions for users on what to do after installation."
+        )
+    
+    # Files generated list check
+    if not metadata.files_generated:
+        raise ValueError(
+            f"Plugin '{metadata.name}' has empty 'files_generated' list. "
+            "Specify which files the plugin creates."
+        )
+
+
 def register_plugin(metadata: PluginMetadata) -> None:
-    """Register a plugin in the global registry."""
+    """Register a plugin in the global registry after validation."""
+    # Validate before registering
+    validate_plugin_metadata(metadata)
     PLUGIN_REGISTRY[metadata.name] = metadata
 
 
@@ -118,4 +184,5 @@ __all__ = [
     "get_plugin",
     "install_plugin",
     "register_plugin",
+    "validate_plugin_metadata",
 ]

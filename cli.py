@@ -166,6 +166,11 @@ def addplugin(
         "-l",
         help="List all available plugins"
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Preview files without creating them"
+    ),
 ):
     """
     🔌 Add a pre-built plugin module to your project.
@@ -182,13 +187,16 @@ def addplugin(
 
       $ python fcube.py addplugin referral
 
+      $ python fcube.py addplugin referral --dry-run
+
       $ python fcube.py addplugin referral --force
     """
     addplugin_command(
         plugin_name=plugin_name,
         directory=directory,
         force=force,
-        list_plugins=list_plugins
+        list_plugins=list_plugins,
+        dry_run=dry_run
     )
 
 

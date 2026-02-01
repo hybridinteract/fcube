@@ -75,12 +75,20 @@ def addplugin_command(
     directory: str = "app",
     force: bool = False,
     list_plugins: bool = False,
+    dry_run: bool = False,
 ):
     """
     Add a plugin module to your project.
     
     Plugins are self-contained modules that extend your project with
     pre-built features like referral systems, notifications, etc.
+    
+    Args:
+        plugin_name: Name of the plugin to install
+        directory: Target directory (default: "app")
+        force: Overwrite existing files
+        list_plugins: Show available plugins
+        dry_run: Preview files without creating them
     """
     # Handle --list flag
     if list_plugins or plugin_name is None:
@@ -133,7 +141,11 @@ def addplugin_command(
         raise typer.Exit(1)
     
     # Generate files using the plugin's self-contained installer
-    console.print(f"[cyan]📁 Creating {plugin_name} module structure...[/cyan]")
+    if dry_run:
+        console.print(f"[yellow]🔍 DRY RUN MODE - No files will be created[/yellow]\n")
+        console.print(f"[cyan]� Preview: Plugin '{plugin_name}' would create:[/cyan]\n")
+    else:
+        console.print(f"[cyan]�📁 Creating {plugin_name} module structure...[/cyan]")
     
     try:
         files_to_create = install_plugin(plugin_name, app_dir)
@@ -141,6 +153,64 @@ def addplugin_command(
         console.print(f"[bold red]❌ Error:[/bold red] Failed to generate plugin files: {e}")
         raise typer.Exit(1)
     
+    # Dry-run mode: Show preview and exit
+    if dry_run:
+        # Display files that would be created
+        preview_table = Table(
+            title=f"📦 Plugin '{plugin_name}' Files Preview",
+            show_header=True,
+            header_style="bold cyan"
+        )
+        preview_table.add_column("File Path", style="green")
+        preview_table.add_column("Size", style="dim", justify="right")
+        preview_table.add_column("Status", style="yellow")
+        
+        total_size = 0
+        for file_path, content in files_to_create:
+            relative_path = file_path.relative_to(base_dir)
+            size_bytes = len(content.encode('utf-8'))
+            total_size += size_bytes
+            
+            # Format size
+            if size_bytes < 1024:
+                size_str = f"{size_bytes} B"
+            else:
+                size_str = f"{size_bytes / 1024:.1f} KB"
+            
+            # Check if file exists
+            status = "Would overwrite" if file_path.exists() else "New file"
+            
+            preview_table.add_row(str(relative_path), size_str, status)
+        
+        console.print(preview_table)
+        console.print()
+        
+        # Summary
+        summary_table = Table(title=f"📊 Dry Run Summary", show_header=False, box=None)
+        summary_table.add_row("[bold]Plugin:[/bold]", f"[cyan]{metadata.name}[/cyan]")
+        summary_table.add_row("[bold]Version:[/bold]", f"[cyan]{metadata.version}[/cyan]")
+        summary_table.add_row("[bold]Total Files:[/bold]", f"[green]{len(files_to_create)}[/green]")
+        summary_table.add_row("[bold]Total Size:[/bold]", f"[green]{total_size / 1024:.1f} KB[/green]")
+        summary_table.add_row("[bold]Target Dir:[/bold]", f"[cyan]{plugin_dir}[/cyan]")
+        
+        console.print(summary_table)
+        console.print()
+        
+        # Post-install preview
+        console.print(
+            Panel(
+                metadata.post_install_notes,
+                title="[bold yellow]📝 Post-Install Steps (Preview)[/bold yellow]",
+                border_style="yellow",
+                padding=(1, 2),
+            )
+        )
+        
+        console.print(f"\n[bold yellow]ℹ️  This was a dry run - no files were created.[/bold yellow]")
+        console.print(f"[dim]To install for real, run: fcube addplugin {plugin_name}[/dim]\n")
+        return
+    
+    # Actual installation (non-dry-run)
     # Ensure directories exist
     for file_path, _ in files_to_create:
         ensure_directory(file_path.parent)
