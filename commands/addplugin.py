@@ -133,25 +133,39 @@ def addplugin_command(
                 console.print(f"   [dim]fcube startmodule {dep}[/dim]")
             raise typer.Exit(1)
     
-    # Plugin already exists check
-    plugin_dir = app_dir / plugin_name
-    if plugin_dir.exists() and not force:
-        console.print(f"[bold red]❌ Error:[/bold red] Plugin '{plugin_name}' already exists at {plugin_dir}")
-        console.print(f"[yellow]💡 Tip:[/yellow] Use --force to overwrite")
-        raise typer.Exit(1)
-    
-    # Generate files using the plugin's self-contained installer
-    if dry_run:
-        console.print(f"[yellow]🔍 DRY RUN MODE - No files will be created[/yellow]\n")
-        console.print(f"[cyan]� Preview: Plugin '{plugin_name}' would create:[/cyan]\n")
-    else:
-        console.print(f"[cyan]�📁 Creating {plugin_name} module structure...[/cyan]")
-    
+    # Generate files using the plugin's self-contained installer to determine actual paths
     try:
         files_to_create = install_plugin(plugin_name, app_dir)
     except Exception as e:
         console.print(f"[bold red]❌ Error:[/bold red] Failed to generate plugin files: {e}")
         raise typer.Exit(1)
+    
+    # Determine the actual plugin directory from the generated files
+    # Some plugins (like deploy_vps) install at project root, not in app/
+    if files_to_create:
+        first_file_path = files_to_create[0][0]
+        # Find the root directory of the plugin by looking for the common parent
+        plugin_dir = first_file_path
+        while plugin_dir.parent != base_dir and plugin_dir.parent != app_dir:
+            plugin_dir = plugin_dir.parent
+        # The plugin_dir is the top-level directory of the plugin
+        # For deploy-vps, this would be /project/deploy-vps
+        # For referral, this would be /project/app/referral
+    else:
+        plugin_dir = app_dir / plugin_name
+    
+    # Plugin already exists check
+    if plugin_dir.exists() and not force:
+        console.print(f"[bold red]❌ Error:[/bold red] Plugin '{plugin_name}' already exists at {plugin_dir}")
+        console.print(f"[yellow]💡 Tip:[/yellow] Use --force to overwrite")
+        raise typer.Exit(1)
+    
+    # Process files (dry run or actual installation)
+    if dry_run:
+        console.print(f"[yellow]🔍 DRY RUN MODE - No files will be created[/yellow]\n")
+        console.print(f"[cyan]📋 Preview: Plugin '{plugin_name}' would create:[/cyan]\n")
+    else:
+        console.print(f"[cyan]📁 Creating {plugin_name} module structure...[/cyan]")
     
     # Dry-run mode: Show preview and exit
     if dry_run:

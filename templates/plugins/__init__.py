@@ -18,9 +18,11 @@ To Add a New Plugin:
 
 Available Plugins:
 - referral: User referral system with configurable completion strategies
+- deploy_vps: Complete VPS deployment system with Docker, Nginx, SSL, Redis, Celery
 
 Usage:
     fcube addplugin referral
+    fcube addplugin deploy_vps
     fcube addplugin --list  # List available plugins
 """
 
@@ -163,15 +165,8 @@ def _discover_plugins() -> None:
     from .referral import PLUGIN_METADATA as referral_metadata
     register_plugin(referral_metadata)
     
-    # ──────────────────────────────────────────────────────────────────────
-    # ADD NEW PLUGINS HERE:
-    # 
-    # from .notifications import PLUGIN_METADATA as notifications_metadata
-    # register_plugin(notifications_metadata)
-    #
-    # from .audit import PLUGIN_METADATA as audit_metadata
-    # register_plugin(audit_metadata)
-    # ──────────────────────────────────────────────────────────────────────
+    from .deploy_vps import PLUGIN_METADATA as deploy_vps_metadata
+    register_plugin(deploy_vps_metadata)
 
 
 # Initialize registry on import
