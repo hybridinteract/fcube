@@ -1,0 +1,131 @@
+site_name: Engineering @ Hybrid Interactive
+site_description: Engineering documentation for Hybridinteractive Consultancy (HIC)
+site_author: Hybrid Interactive Engineering Team
+site_url: https://engineering.hybridinteractive.in
+
+repo_name: hybridinteract/fcube
+repo_url: https://github.com/hybridinteract/fcube
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: en
+  
+  palette:
+    - scheme: default
+      primary: custom
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  
+  font:
+    text: Inter
+    code: JetBrains Mono
+  
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
+  
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/hybridinteract
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/company/hybridinteractive
+  
+  generator: false
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: hybridinteract
+      repo: fcube
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+
+nav:
+  - Home: index.md
+  
+  - Engineering Standards:
+    - Overview: principles/index.md
+    - Architecture & Tech Stack: principles/architecture.md
+  
+  - FCube CLI:
+    - Introduction: fcube/index.md
+    - Getting Started: fcube/getting-started.md
+    - Commands Reference: fcube/commands.md
+    - Generated Architecture: fcube/architecture.md
+    - Plugin System: fcube/plugins.md
+    - Contributing: fcube/contributing.md
+  
+  - Engineering Guides:
+    - Overview: guides/index.md
+    - Developer Onboarding: guides/onboarding.md
+    - Git Workflow: guides/git-workflow.md
+    - Code Review Process: guides/code-review.md
+
+copyright: Copyright &copy; 2024 - 2026 Hybridinteractive Consultancy (HIC)

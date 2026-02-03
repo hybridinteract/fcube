@@ -1,0 +1,31 @@
+/* Corporate Dark Blue Theme */
+:root {
+  /* Material Blue 900 for primary */
+  --md-primary-fg-color: #0d47a1;
+  --md-primary-fg-color--light: #1565c0;
+  --md-primary-fg-color--dark: #002171;
+  
+  /* Keep teal accent but maybe slightly adjusted if needed, 
+     but standard teal is fine */
+}
+
+/* Typography improvements */
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Code blocks */
+.md-typeset code {
+  font-size: 0.85em;
+}
+
+/* Footer styling */
+.md-footer {
+  background-color: var(--md-primary-fg-color--dark);
+}
