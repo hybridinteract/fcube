@@ -8,13 +8,49 @@ Install FCube and create your first project.
 
 ### Prerequisites
 
-- **Python 3.11+** — Check with `python --version`
+- **Python 3.9+** — Check with `python --version`
 - **pip** — Usually included with Python
+- **Git** — For version control
+- **Docker** — For containerized development (optional but recommended)
 
-### Install from PyPI
+### Option 1: Install from GitHub (Recommended)
 
 ```bash
-pip install fcube
+# Using pip
+pip install git+https://github.com/amal-babu-git/fcube.git
+
+# Using uv (faster)
+uv tool install git+https://github.com/amal-babu-git/fcube.git
+```
+
+### Option 2: Install from Local Source
+
+```bash
+git clone https://github.com/amal-babu-git/fcube.git
+cd fcube
+
+# Install globally
+pip install .
+
+# Or install in editable mode for development
+pip install -e .
+
+# Using uv (recommended for development)
+uv sync
+source .venv/bin/activate
+```
+
+### Option 3: Run Without Installation
+
+```bash
+git clone https://github.com/amal-babu-git/fcube.git
+cd fcube
+
+# Run using uv
+uv run fcube --help
+
+# Or using python module syntax
+python -m fcube --help
 ```
 
 ### Verify Installation
@@ -22,6 +58,8 @@ pip install fcube
 ```bash
 fcube --version
 # FCube CLI v1.0.0
+
+fcube --help
 ```
 
 ---
@@ -31,40 +69,59 @@ fcube --version
 ### 1. Generate Project
 
 ```bash
-fcube startproject myapp
+# Basic usage
+fcube startproject MyApp
+
+# Specify directory
+fcube startproject MyApi --dir projects
+
+# Without Celery
+fcube startproject SimpleApi --no-celery
+
+# Without Docker
+fcube startproject LightApi --no-docker
+
+# Force overwrite
+fcube startproject MyProject --force
 ```
 
 This creates:
 
 ```
-myapp/
+my_project/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI application
 │   ├── apis/
-│   │   └── v1.py            # API router (v1)
-│   ├── core/
-│   │   ├── config.py        # Settings
-│   │   ├── database.py      # Database connection
-│   │   ├── dependencies.py  # DI container
-│   │   └── security.py      # Auth utilities
-│   ├── models/              # SQLAlchemy models
-│   ├── schemas/             # Pydantic schemas
-│   ├── services/            # Business logic
-│   └── crud/                # Database operations
-├── alembic/                 # Database migrations
-├── tests/                   # Test suite
-├── requirements.txt
+│   │   └── v1.py
+│   └── core/
+│       ├── __init__.py
+│       ├── database.py
+│       ├── models.py
+│       ├── settings.py
+│       ├── crud.py
+│       ├── exceptions.py
+│       ├── logging.py
+│       ├── main.py
+│       ├── dependencies.py
+│       ├── alembic_models_import.py
+│       └── celery_app.py
+├── migrations/
+├── docker/
+│   ├── Dockerfile
+│   └── docker-entrypoint.sh
+├── docker-compose.yml
+├── alembic.ini
+├── pyproject.toml
 ├── .env.example
+├── .gitignore
 └── README.md
 ```
 
 ### 2. Set Up Environment
 
 ```bash
-cd myapp
+cd my_project
 
-# Create virtual environment
+# Create virtual environment (optional if using Docker)
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # or: .\venv\Scripts\activate  # Windows
@@ -83,15 +140,36 @@ cp .env.example .env
 # DATABASE_URL=postgresql://user:pass@localhost:5432/myapp
 ```
 
-### 4. Run Migrations
+### 4. Run with Docker (Recommended)
 
 ```bash
+# Start all services
+docker compose up -d
+
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f
+```
+
+### 5. Run Migrations
+
+```bash
+# If using Docker
+docker compose exec app alembic upgrade head
+
+# If running locally
 alembic upgrade head
 ```
 
-### 5. Start the Server
+### 6. Start the Server
 
 ```bash
+# If using Docker
+# Server is already running
+
+# If running locally
 uvicorn app.main:app --reload
 ```
 
@@ -99,107 +177,146 @@ Open [http://localhost:8000/docs](http://localhost:8000/docs) — you'll see the
 
 ---
 
-## Add a Module
+## Add User Module
 
-Modules are feature-based groupings of your code.
-
-```bash
-fcube addmodule products
-```
-
-This generates:
-
-```
-app/
-├── models/products.py       # SQLAlchemy model
-├── schemas/products.py      # Pydantic schemas
-├── crud/products.py         # CRUD operations
-├── services/products.py     # Business logic
-└── routes/products.py       # API endpoints
-```
-
-**Routes are automatically registered** in `app/apis/v1.py`.
-
----
-
-## Add Authentication
+Add authentication and user management:
 
 ```bash
-fcube adduser --jwt
+# Email/password authentication (default)
+fcube adduser
+
+# Phone OTP authentication
+fcube adduser --auth-type phone
+
+# Both email and phone authentication
+fcube adduser --auth-type both
+
+# Force overwrite
+fcube adduser --force
 ```
 
 This adds:
 
-- User model with password hashing
-- JWT token authentication
-- Login/register endpoints
-- Role-based permissions
-- Refresh token support
-
-### Using Auth
-
-```python
-from app.core.dependencies import get_current_user
-from app.models.user import User
-
-@router.get("/me")
-async def get_profile(user: User = Depends(get_current_user)):
-    return user
+```
+app/user/
+├── __init__.py
+├── models.py
+├── schemas.py
+├── crud.py
+├── exceptions.py
+├── auth_management/
+│   ├── __init__.py
+│   ├── routes.py
+│   ├── service.py
+│   └── utils.py
+├── permission_management/
+│   ├── __init__.py
+│   ├── utils.py
+│   └── scoped_access.py
+└── services/
+    ├── __init__.py
+    └── user_referral_integration.py
 ```
 
 ---
 
 ## Add a Plugin
 
-Plugins add pre-built features to your project.
+Plugins add pre-built features to your project:
 
 ```bash
-# See available plugins
-fcube plugins
+# List available plugins
+fcube addplugin --list
 
-# Add a plugin
+# Preview plugin (dry run)
+fcube addplugin referral --dry-run
+
+# Install plugin
 fcube addplugin referral
+
+# Force overwrite
+fcube addplugin referral --force
 ```
 
 Learn more in the [Plugin System](plugins.md) guide.
 
 ---
 
-## Project Configuration
-
-### Environment Variables
+## Create a Custom Module
 
 ```bash
-# .env
-DATABASE_URL=postgresql://user:pass@localhost:5432/myapp
-REDIS_URL=redis://localhost:6379/0
-SECRET_KEY=your-secret-key
-JWT_SECRET_KEY=your-jwt-secret
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+# Basic usage
+fcube startmodule product
+
+# Without admin routes
+fcube startmodule review --no-admin
+
+# Without public routes
+fcube startmodule internal_report --no-public
+
+# Force overwrite
+fcube startmodule product --force
 ```
 
-### Settings Management
+This generates:
 
-```python
-# app/core/config.py
-from pydantic_settings import BaseSettings
-
-
-class Settings(BaseSettings):
-    database_url: str
-    redis_url: str = "redis://localhost:6379/0"
-    secret_key: str
-    jwt_secret_key: str
-    jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
-    
-    class Config:
-        env_file = ".env"
-
-
-settings = Settings()
 ```
+app/product/
+├── __init__.py
+├── dependencies.py
+├── exceptions.py
+├── permissions.py
+├── tasks.py
+├── README.md
+├── models/
+│   ├── __init__.py
+│   └── product.py
+├── schemas/
+│   ├── __init__.py
+│   └── product_schemas.py
+├── crud/
+│   ├── __init__.py
+│   └── product_crud.py
+├── services/
+│   ├── __init__.py
+│   └── product_service.py
+├── routes/
+│   ├── __init__.py
+│   ├── public/
+│   │   ├── __init__.py
+│   │   └── product.py
+│   └── admin/
+│       ├── __init__.py
+│       └── product_management.py
+├── utils/
+│   └── __init__.py
+└── integrations/
+    └── __init__.py
+```
+
+---
+
+## Add Entity to Module
+
+Add a new entity to an existing module:
+
+```bash
+fcube addentity service_provider availability
+
+fcube addentity booking payment --force
+```
+
+---
+
+## List Modules
+
+```bash
+fcube listmodules
+
+fcube listmodules --dir app
+```
+
+Shows all existing modules with their structure.
 
 ---
 

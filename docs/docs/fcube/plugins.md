@@ -1,18 +1,18 @@
 # Plugin System
 
-FCube's plugin system for extending projects with pre-built features.
+The plugin system allows adding pre-built feature modules to any FCube-generated project. Plugins are **self-contained** with their own models, services, routes, and installation logic.
 
 ---
 
 ## Overview
 
-Plugins are self-contained packages that add functionality to your FCube project. Each plugin includes:
+Plugins provide a way to extend FCube projects with common features without having to implement them from scratch. Each plugin includes:
 
-- Models and schemas
-- Services and CRUD operations
-- Routes and dependencies
-- Configuration templates
-- Documentation
+- **Models and schemas** - Database entities and validation
+- **Services and CRUD operations** - Business logic and data access
+- **Routes and dependencies** - API endpoints and DI configuration
+- **Configuration templates** - Environment variables and settings
+- **Documentation** - Usage instructions and examples
 
 ---
 
@@ -20,7 +20,7 @@ Plugins are self-contained packages that add functionality to your FCube project
 
 ### referral
 
-**Multi-tier referral system with configurable levels and rewards.**
+**User referral system with strategies.**
 
 ```bash
 fcube addplugin referral
@@ -28,28 +28,37 @@ fcube addplugin referral
 
 Features:
 
-- Multi-level referral tracking
-- Configurable reward tiers
-- Milestone-based rewards
-- Reward distribution strategies
+- Referral tracking and management
+- Configurable referral strategies
+- Referral code generation
 - Complete API for referral management
+- Integration with user module
 
 Generated files:
 
 ```
-app/
-├── models/referral/
-│   ├── referral.py
-│   ├── referral_level.py
-│   ├── referral_reward.py
-│   └── referral_milestone.py
-├── schemas/referral/
-├── crud/referral/
-├── services/referral/
-└── routes/referral/
+app/referral/
+├── __init__.py
+├── models.py
+├── config.py
+├── strategies.py
+├── exceptions.py
+├── dependencies.py
+├── tasks.py
+├── schemas/
+│   ├── __init__.py
+│   └── referral_schemas.py
+├── crud/
+│   ├── __init__.py
+│   └── referral_crud.py
+├── services/
+│   ├── __init__.py
+│   └── referral_service.py
+└── routes/
+    ├── __init__.py
+    ├── referral_routes.py
+    └── referral_admin_routes.py
 ```
-
----
 
 ### deploy_vps
 
@@ -96,20 +105,26 @@ deploy-vps/
 
 ## Using Plugins
 
+### List Available Plugins
+
+```bash
+fcube addplugin --list
+```
+
 ### Install a Plugin
 
 ```bash
-# List available plugins
-fcube plugins
-
 # Install with default settings
 fcube addplugin <plugin_name>
 
-# Preview changes first
+# Preview changes first (dry run)
 fcube addplugin <plugin_name> --dry-run
 
 # Force overwrite existing files
 fcube addplugin <plugin_name> --force
+
+# Specify app directory
+fcube addplugin <plugin_name> --dir app
 ```
 
 ### Dry Run Mode
@@ -125,22 +140,30 @@ Output:
 ```
 Dry Run: referral plugin
 ────────────────────────────────────────────────
-
 Would create files:
-  ✓ app/models/referral/referral.py
-  ✓ app/models/referral/referral_level.py
-  ✓ app/schemas/referral/referral.py
-  ✓ app/services/referral/referral_service.py
-  ✓ app/routes/referral/referral.py
-
+  ✓ app/referral/__init__.py
+  ✓ app/referral/models.py
+  ✓ app/referral/config.py
+  ✓ app/referral/strategies.py
+  ✓ app/referral/exceptions.py
+  ✓ app/referral/dependencies.py
+  ✓ app/referral/tasks.py
+  ✓ app/referral/schemas/__init__.py
+  ✓ app/referral/schemas/referral_schemas.py
+  ✓ app/referral/crud/__init__.py
+  ✓ app/referral/crud/referral_crud.py
+  ✓ app/referral/services/__init__.py
+  ✓ app/referral/services/referral_service.py
+  ✓ app/referral/routes/__init__.py
+  ✓ app/referral/routes/referral_routes.py
+  ✓ app/referral/routes/referral_admin_routes.py
 Would modify files:
   ~ app/apis/v1.py (add router)
   ~ app/core/alembic_models_import.py (add model imports)
-
 No files will be changed (dry run mode)
 ```
 
-### Post-Installation
+### Post-Installation Steps
 
 After installing a plugin:
 
@@ -154,9 +177,18 @@ After installing a plugin:
 
 3. **Review** the plugin's README for usage instructions
 
+### Post-Installation for Referral Plugin
+
+1. Add `referral_code` field to User model
+2. Update `app/apis/v1.py` to include referral routes
+3. Update `app/core/alembic_models_import.py`
+4. Run migrations: `alembic revision --autogenerate && alembic upgrade head`
+
 ---
 
-## Creating Plugins
+## Plugin Architecture
+
+Plugins are discovered dynamically from the `templates/plugins/` directory. Each plugin must have:
 
 ### Plugin Structure
 
@@ -299,6 +331,7 @@ def _discover_plugins() -> None:
 - **Well-documented** — README with usage instructions
 - **Validated** — Test with fresh FCube project
 - **Versioned** — Follow semantic versioning
+- **Configurable** — Use environment variables for settings
 
 ### Don't
 
@@ -306,6 +339,7 @@ def _discover_plugins() -> None:
 - **Hardcode values** — Use configuration
 - **Break existing code** — Check for conflicts
 - **Skip migrations** — Always include model changes
+- **Duplicate functionality** — Check if existing plugins cover the use case
 
 ---
 

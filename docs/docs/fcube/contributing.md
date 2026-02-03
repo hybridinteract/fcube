@@ -8,7 +8,7 @@ How to contribute to FCube development.
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.9+
 - Git
 - A GitHub account
 
@@ -20,7 +20,7 @@ git clone https://github.com/YOUR_USERNAME/fcube.git
 cd fcube
 
 # Add upstream remote
-git remote add upstream https://github.com/hybridinteract/fcube.git
+git remote add upstream https://github.com/amal-babu-git/fcube.git
 ```
 
 ### Set Up Development Environment
@@ -31,7 +31,11 @@ python -m venv venv
 source venv/bin/activate
 
 # Install in development mode
-pip install -e ".[dev]"
+pip install -e .
+
+# Using uv (recommended for development)
+uv sync
+source .venv/bin/activate
 
 # Run tests to verify setup
 pytest

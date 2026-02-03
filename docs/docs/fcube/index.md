@@ -1,6 +1,12 @@
-# FCube CLI
+# 🧊 FCube CLI
 
-A modular monolith generator for FastAPI applications.
+> Modern FastAPI Project & Module Generator
+
+FCube CLI is a powerful code generation tool that creates production-ready FastAPI projects and modules following clean architecture principles, dependency injection patterns, and role-based access control.
+
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 
 ---
 
@@ -8,23 +14,33 @@ A modular monolith generator for FastAPI applications.
 
 **FCube** is a CLI tool that generates production-ready FastAPI projects with:
 
-- **Modular architecture** — Clean separation of concerns
-- **Dependency injection** — Testable, maintainable code
-- **Database patterns** — CRUD, transactions, migrations
-- **Plugin system** — Extend with reusable components
+- **Complete Project Scaffolding** - Generate full FastAPI projects with core infrastructure
+- **Modular User System** - Add user module with configurable authentication (email, phone, or both)
+- **Plugin Architecture** - Pre-built feature modules with automatic validation
+- **Modern Module Structure** - Organized directories for models, schemas, crud, services, routes
+- **Docker Support** - docker-compose with PostgreSQL, Redis, Celery, and Flower
+- **Alembic Migrations** - Pre-configured async migrations
+- **Dependency Injection** - `@lru_cache` singleton services with factory functions
+- **Role-Based Routes** - Separate public and admin route directories
+- **Permission System** - RBAC with configurable permissions
+- **Transaction Management** - "No Commit in CRUD" pattern
+- **Rich CLI** - Beautiful terminal output with progress indicators
 
 ```bash
 # Create a new project
-fcube startproject myapp
+fcube startproject MyApp
 
-# Add a module
-fcube addmodule products
+# Add user module with email authentication
+fcube adduser --auth-type email
 
-# Add authentication
-fcube adduser --jwt
-
-# Add a plugin
+# Add referral plugin
 fcube addplugin referral
+
+# Create a custom module
+fcube startmodule product
+
+# Start the server
+docker compose up -d
 ```
 
 ---
@@ -70,19 +86,19 @@ FCube codifies our best practices into a generator:
 
     ---
 
-    Clean DI pattern with FastAPI's `Depends()` system for testability.
+    Clean DI pattern with `@lru_cache()` singleton services for testability.
 
 -   :material-database:{ .lg .middle } __Database Patterns__
 
     ---
 
-    SQLAlchemy 2.0 ORM, async sessions, and Alembic migrations.
+    SQLAlchemy 2.0 ORM, async sessions, Alembic migrations, and "No Commit in CRUD" pattern.
 
 -   :material-shield-check:{ .lg .middle } __Authentication__
 
     ---
 
-    JWT-based auth with role-based permissions and refresh tokens.
+    Configurable auth with email/password, phone OTP, or both.
 
 -   :material-puzzle:{ .lg .middle } __Plugin System__
 
@@ -96,6 +112,18 @@ FCube codifies our best practices into a generator:
 
     Templates for models, schemas, CRUD, services, and routes.
 
+-   :material-docker:{ .lg .middle } __Docker Support__
+
+    ---
+
+    docker-compose with PostgreSQL, Redis, Celery, and Flower.
+
+-   :material-security:{ .lg .middle } __RBAC Permissions__
+
+    ---
+
+    Role-based access control with scoped permissions.
+
 </div>
 
 ---
@@ -104,22 +132,25 @@ FCube codifies our best practices into a generator:
 
 ```bash
 # Install FCube
-pip install fcube
+pip install git+https://github.com/amal-babu-git/fcube.git
 
 # Create a new project
-fcube startproject myapp
-cd myapp
+fcube startproject MyApp
 
-# Set up environment
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# Navigate to project
+cd MyApp
 
-# Initialize database
-alembic upgrade head
+# Add user module with email authentication
+fcube adduser --auth-type email
 
-# Run the server
-uvicorn app.main:app --reload
+# Add referral plugin
+fcube addplugin referral
+
+# Create a custom module
+fcube startmodule product
+
+# Start the server
+docker compose up -d
 ```
 
 **That's it!** Open [http://localhost:8000/docs](http://localhost:8000/docs) to see your API.

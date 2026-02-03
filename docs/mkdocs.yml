@@ -1,4 +1,4 @@
-site_name: Engineering @ Hybrid Interactive
+site_name: Hybrid Interactive Engineering
 site_description: Engineering documentation for Hybridinteractive Consultancy (HIC)
 site_author: Hybrid Interactive Engineering Team
 site_url: https://engineering.hybridinteractive.in
@@ -111,8 +111,8 @@ nav:
   - Home: index.md
   
   - Engineering Standards:
-    - Overview: principles/index.md
-    - Architecture & Tech Stack: principles/architecture.md
+    - Overview: standards/index.md
+    - Architecture & Tech Stack: standards/architecture.md
   
   - FCube CLI:
     - Introduction: fcube/index.md
@@ -121,11 +121,5 @@ nav:
     - Generated Architecture: fcube/architecture.md
     - Plugin System: fcube/plugins.md
     - Contributing: fcube/contributing.md
-  
-  - Engineering Guides:
-    - Overview: guides/index.md
-    - Developer Onboarding: guides/onboarding.md
-    - Git Workflow: guides/git-workflow.md
-    - Code Review Process: guides/code-review.md
 
 copyright: Copyright &copy; 2024 - 2026 Hybridinteractive Consultancy (HIC)

@@ -15,9 +15,9 @@ These options are available for all commands:
 
 ---
 
-## startproject
+## startproject - Create New Project
 
-Create a new FastAPI project.
+Creates a new FastAPI project with core infrastructure. User module is **not included by default**.
 
 ```bash
 fcube startproject <project_name> [OPTIONS]
@@ -33,129 +33,66 @@ fcube startproject <project_name> [OPTIONS]
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--no-git` | False | Skip Git initialization |
-| `--no-venv` | False | Skip virtual environment creation |
+| `--dir, -d` | `.` | Directory for project |
+| `--celery/--no-celery` | `yes` | Include Celery |
+| `--docker/--no-docker` | `yes` | Include Docker |
+| `--force, -f` | `no` | Overwrite existing files |
 
 ### Examples
 
 ```bash
-# Basic project
-fcube startproject myapp
+# Basic usage
+fcube startproject MyProject
 
-# Without Git
-fcube startproject myapp --no-git
+# Specify directory
+fcube startproject MyApi --dir projects
 
-# Custom location
-cd /path/to/projects
-fcube startproject myapp
+# Without Celery
+fcube startproject SimpleApi --no-celery
+
+# Without Docker
+fcube startproject LightApi --no-docker
+
+# Force overwrite
+fcube startproject MyProject --force
 ```
 
 ### Generated Structure
 
 ```
-myapp/
+my_project/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py
 │   ├── apis/
-│   │   ├── __init__.py
 │   │   └── v1.py
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── dependencies.py
-│   │   └── security.py
-│   ├── models/
-│   │   └── __init__.py
-│   ├── schemas/
-│   │   └── __init__.py
-│   ├── services/
-│   │   └── __init__.py
-│   ├── crud/
-│   │   └── __init__.py
-│   └── routes/
-│       └── __init__.py
-├── alembic/
-│   ├── versions/
-│   ├── env.py
-│   └── script.py.mako
-├── tests/
-│   ├── __init__.py
-│   └── conftest.py
-├── .env.example
-├── .gitignore
+│   └── core/
+│       ├── __init__.py
+│       ├── database.py
+│       ├── models.py
+│       ├── settings.py
+│       ├── crud.py
+│       ├── exceptions.py
+│       ├── logging.py
+│       ├── main.py
+│       ├── dependencies.py
+│       ├── alembic_models_import.py
+│       └── celery_app.py
+├── migrations/
+├── docker/
+│   ├── Dockerfile
+│   └── docker-entrypoint.sh
+├── docker-compose.yml
 ├── alembic.ini
 ├── pyproject.toml
-├── requirements.txt
+├── .env.example
+├── .gitignore
 └── README.md
 ```
 
 ---
 
-## addmodule
+## adduser - Add User Module
 
-Add a new module (feature) to the project.
-
-```bash
-fcube addmodule <module_name> [OPTIONS]
-```
-
-### Arguments
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `module_name` | Yes | Name of the module (e.g., `products`) |
-
-### Options
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--no-routes` | False | Skip route generation |
-| `--no-crud` | False | Skip CRUD generation |
-| `--no-service` | False | Skip service generation |
-
-### Examples
-
-```bash
-# Full module with all components
-fcube addmodule products
-
-# Model and schema only
-fcube addmodule products --no-routes --no-crud --no-service
-
-# Multiple modules
-fcube addmodule products
-fcube addmodule categories
-fcube addmodule orders
-```
-
-### Generated Files
-
-```
-app/
-├── models/products.py       # SQLAlchemy model
-├── schemas/products.py      # Pydantic schemas
-├── crud/products.py         # CRUD operations
-├── services/products.py     # Business logic
-└── routes/products.py       # API endpoints
-```
-
-### Auto-Registration
-
-Routes are automatically added to `app/apis/v1.py`:
-
-```python
-from app.routes import products
-
-router.include_router(products.router, prefix="/products", tags=["products"])
-```
-
----
-
-## adduser
-
-Add user authentication module.
+Adds user module with configurable authentication methods.
 
 ```bash
 fcube adduser [OPTIONS]
@@ -165,50 +102,62 @@ fcube adduser [OPTIONS]
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--jwt` | True | Use JWT authentication |
-| `--roles` | True | Include role-based permissions |
-| `--refresh` | True | Include refresh token support |
+| `--auth-type, -a` | `email` | `email`, `phone`, or `both` |
+| `--dir, -d` | `app` | App directory |
+| `--force, -f` | `no` | Overwrite existing |
+
+### Authentication Types
+
+| Type | Description | User Fields |
+|------|-------------|-------------|
+| `email` | Email + password with JWT | `email`, `hashed_password` |
+| `phone` | Phone OTP with SMS | `phone_number`, `otp_code` |
+| `both` | Combined authentication | All fields + `primary_auth_method` |
 
 ### Examples
 
 ```bash
-# Full authentication
+# Email/password authentication (default)
 fcube adduser
 
-# Basic JWT without roles
-fcube adduser --no-roles
+# Phone OTP authentication
+fcube adduser --auth-type phone
 
-# JWT only (no refresh tokens)
-fcube adduser --no-refresh
+# Both email and phone authentication
+fcube adduser --auth-type both
+
+# Force overwrite
+fcube adduser --force
 ```
 
-### Generated Files
+### Generated Structure
 
 ```
-app/
-├── models/user.py           # User model with password hashing
-├── schemas/user.py          # Auth schemas (login, register, tokens)
-├── crud/user.py             # User CRUD
-├── services/user.py         # Auth logic (login, register)
-├── routes/auth.py           # Auth endpoints
-└── core/
-    └── security.py          # JWT utilities, password hashing
+app/user/
+├── __init__.py
+├── models.py
+├── schemas.py
+├── crud.py
+├── exceptions.py
+├── auth_management/
+│   ├── __init__.py
+│   ├── routes.py
+│   ├── service.py
+│   └── utils.py
+├── permission_management/
+│   ├── __init__.py
+│   ├── utils.py
+│   └── scoped_access.py
+└── services/
+    ├── __init__.py
+    └── user_referral_integration.py
 ```
-
-### Endpoints Added
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/auth/register` | POST | Register new user |
-| `/auth/login` | POST | Login and get tokens |
-| `/auth/refresh` | POST | Refresh access token |
-| `/auth/me` | GET | Get current user |
 
 ---
 
-## addplugin
+## addplugin - Add Plugin Modules
 
-Add a plugin to the project.
+Adds pre-built feature modules to your project.
 
 ```bash
 fcube addplugin <plugin_name> [OPTIONS]
@@ -224,56 +173,215 @@ fcube addplugin <plugin_name> [OPTIONS]
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--dry-run` | False | Preview changes without applying |
-| `--force` | False | Overwrite existing files |
+| `--list, -l` | - | Show available plugins |
+| `--dry-run` | `no` | Preview without creating files |
+| `--dir, -d` | `app` | App directory |
+| `--force, -f` | `no` | Overwrite existing |
 
 ### Examples
 
 ```bash
 # List available plugins
-fcube plugins
+fcube addplugin --list
 
-# Install a plugin
+# Preview plugin (dry run)
+fcube addplugin referral --dry-run
+
+# Install plugin
 fcube addplugin referral
 
-# Preview what would be installed
-fcube addplugin deploy_vps --dry-run
-
-# Force overwrite existing files
+# Force overwrite
 fcube addplugin referral --force
 ```
 
 ### Available Plugins
 
-| Plugin | Description |
-|--------|-------------|
-| `referral` | Referral system with levels and rewards |
-| `deploy_vps` | VPS deployment with Docker, Nginx, SSL |
+| Plugin | Description | Dependencies |
+|--------|-------------|--------------|
+| `referral` | User referral system with strategies | `user` |
+
+### Referral Plugin Structure
+
+```
+app/referral/
+├── __init__.py
+├── models.py
+├── config.py
+├── strategies.py
+├── exceptions.py
+├── dependencies.py
+├── tasks.py
+├── schemas/
+│   ├── __init__.py
+│   └── referral_schemas.py
+├── crud/
+│   ├── __init__.py
+│   └── referral_crud.py
+├── services/
+│   ├── __init__.py
+│   └── referral_service.py
+└── routes/
+    ├── __init__.py
+    ├── referral_routes.py
+    └── referral_admin_routes.py
+```
+
+### Post-Installation Steps (Referral Plugin)
+
+1. Add `referral_code` field to User model
+2. Update `app/apis/v1.py` to include referral routes
+3. Update `app/core/alembic_models_import.py`
+4. Run migrations: `alembic revision --autogenerate && alembic upgrade head`
 
 ---
 
-## plugins
+## startmodule - Create Custom Module
 
-List available plugins.
+Creates a new module with complete folder structure.
 
 ```bash
-fcube plugins
+fcube startmodule <module_name> [OPTIONS]
 ```
 
-### Output
+### Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `module_name` | Yes | Name of the module (e.g., `products`) |
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--dir, -d` | `app` | App directory |
+| `--admin/--no-admin` | `yes` | Include admin routes |
+| `--public/--no-public` | `yes` | Include public routes |
+| `--force, -f` | `no` | Overwrite existing |
+
+### Examples
+
+```bash
+# Basic usage
+fcube startmodule product
+
+# Without admin routes
+fcube startmodule review --no-admin
+
+# Without public routes
+fcube startmodule internal_report --no-public
+
+# Force overwrite
+fcube startmodule product --force
+```
+
+### Generated Structure
 
 ```
-Available Plugins:
-──────────────────────────────────────────────────────────────
+app/product/
+├── __init__.py
+├── dependencies.py
+├── exceptions.py
+├── permissions.py
+├── tasks.py
+├── README.md
+├── models/
+│   ├── __init__.py
+│   └── product.py
+├── schemas/
+│   ├── __init__.py
+│   └── product_schemas.py
+├── crud/
+│   ├── __init__.py
+│   └── product_crud.py
+├── services/
+│   ├── __init__.py
+│   └── product_service.py
+├── routes/
+│   ├── __init__.py
+│   ├── public/
+│   │   ├── __init__.py
+│   │   └── product.py
+│   └── admin/
+│       ├── __init__.py
+│       └── product_management.py
+├── utils/
+│   └── __init__.py
+└── integrations/
+    └── __init__.py
+```
 
-  referral (v1.0.0)
-  Multi-tier referral system with configurable levels and rewards
-  
-  deploy_vps (v1.0.0)
-  Complete VPS deployment with Docker, Nginx, SSL, Redis, Celery
+---
 
-──────────────────────────────────────────────────────────────
-Install a plugin with: fcube addplugin <plugin_name>
+## addentity - Add Entity to Module
+
+Adds a new entity to an existing module.
+
+```bash
+fcube addentity <module_name> <entity_name> [OPTIONS]
+```
+
+### Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `module_name` | Yes | Name of the existing module |
+| `entity_name` | Yes | Name of the entity to add |
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--force, -f` | `no` | Overwrite existing |
+
+### Examples
+
+```bash
+fcube addentity service_provider availability
+
+fcube addentity booking payment --force
+```
+
+Creates model, schema, and CRUD files for a new entity within an existing module.
+
+---
+
+## listmodules - List All Modules
+
+Shows all existing modules with their structure.
+
+```bash
+fcube listmodules [OPTIONS]
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--dir, -d` | `app` | App directory |
+
+### Examples
+
+```bash
+fcube listmodules
+
+fcube listmodules --dir app
+```
+
+---
+
+## version - Show CLI Version
+
+Shows the current FCube CLI version.
+
+```bash
+fcube version
+```
+
+### Examples
+
+```bash
+fcube version
+# FCube CLI v1.0.0
 ```
 
 ---
@@ -284,16 +392,19 @@ Install a plugin with: fcube addplugin <plugin_name>
 
 ```bash
 # Create project
-fcube startproject myapp
-cd myapp
+fcube startproject MyApp
+cd MyApp
 
-# Add authentication
-fcube adduser --jwt
+# Add user module with email authentication
+fcube adduser --auth-type email
 
 # Add modules
-fcube addmodule products
-fcube addmodule orders
-fcube addmodule customers
+fcube startmodule products
+fcube startmodule orders
+fcube startmodule customers
+
+# Add referral plugin
+fcube addplugin referral
 
 # Set up environment
 python -m venv venv
@@ -304,28 +415,30 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your settings
 
-# Run migrations
-alembic upgrade head
+# Run Docker services
+docker compose up -d
 
-# Start server
-uvicorn app.main:app --reload
+# Run migrations
+docker compose exec app alembic upgrade head
+
+# Start server (already running with Docker)
 ```
 
 ### Adding Features to Existing Project
 
 ```bash
 # Navigate to project
-cd myapp
+cd MyApp
 
 # Add new module
-fcube addmodule reviews
+fcube startmodule reviews
 
 # Add referral system
 fcube addplugin referral
 
 # Run new migrations
-alembic revision --autogenerate -m "add reviews and referral"
-alembic upgrade head
+docker compose exec app alembic revision --autogenerate -m "add reviews and referral"
+docker compose exec app alembic upgrade head
 ```
 
 ### Preparing for Deployment
