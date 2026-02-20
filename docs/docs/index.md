@@ -32,13 +32,23 @@ This site serves as the central reference for our engineering standards, technol
 
     [:octicons-arrow-right-24: View standards](standards/index.md)
 
--   :material-cube-outline:{ .lg .middle } __FCube CLI__
+-   :material-cube-outline:{ .lg .middle } __FCube CLI__ *(Under Development)*
 
     ---
+
+    🚧 **Do not use - Currently under development** 🚧
 
     Complete guide to our modular monolith generator and plugin system.
 
     [:octicons-arrow-right-24: Learn FCube](fcube/index.md)
+
+-   :material-robot-outline:{ .lg .middle } __AI Context Prompt__
+
+    ---
+
+    Easily copy our system architecture rules directly into your IDE's AI assistant.
+
+    [:octicons-arrow-right-24: Get AI Prompt](ai-prompt.md)
 
 </div>
 

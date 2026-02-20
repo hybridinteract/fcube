@@ -1,5 +1,8 @@
 # Getting Started
 
+!!! warning "Under Development"
+    The FCube CLI is currently under active development. Please do not use it for production projects at this time.
+
 Install FCube and create your first project.
 
 ---

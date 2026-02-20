@@ -113,6 +113,9 @@ nav:
   - Engineering Standards:
     - Overview: standards/index.md
     - Architecture & Tech Stack: standards/architecture.md
+    - Project Structure: standards/project-structure.md
+  
+  - AI Context Prompt: ai-prompt.md
   
   - FCube CLI:
     - Introduction: fcube/index.md

@@ -1,5 +1,8 @@
 # 🧊 FCube CLI
 
+!!! warning "Under Development"
+    The FCube CLI is currently under active development. Please do not use it for production projects at this time.
+
 > Modern FastAPI Project & Module Generator
 
 FCube CLI is a powerful code generation tool that creates production-ready FastAPI projects and modules following clean architecture principles, dependency injection patterns, and role-based access control.
