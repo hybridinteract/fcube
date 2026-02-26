@@ -10,7 +10,7 @@ theme:
   name: material
   custom_dir: overrides
   language: en
-  
+
   palette:
     - scheme: default
       primary: custom
@@ -24,11 +24,11 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-  
+
   font:
     text: Inter
     code: JetBrains Mono
-  
+
   features:
     - navigation.instant
     - navigation.tracking
@@ -44,7 +44,7 @@ theme:
     - content.tabs.link
     - content.code.copy
     - content.code.annotate
-  
+
   icon:
     repo: fontawesome/brands/github
 
@@ -57,7 +57,7 @@ extra:
       link: https://github.com/hybridinteract
     - icon: fontawesome/brands/linkedin
       link: https://linkedin.com/company/hybridinteractive
-  
+
   generator: false
 
 markdown_extensions:
@@ -109,20 +109,23 @@ plugins:
 
 nav:
   - Home: index.md
-  
+
   - Engineering Standards:
-    - Overview: standards/index.md
-    - Architecture & Tech Stack: standards/architecture.md
-    - Project Structure: standards/project-structure.md
-  
-  - AI Context Prompt: ai-prompt.md
-  
+      - Overview: standards/index.md
+      - Architecture & Tech Stack: standards/architecture.md
+      - Project Structure: standards/project-structure.md
+      - Frontend Architecture Guide: standards/FRONTEND_ARCHITECTURE_GUIDE_V2.md
+
+  - AI Context Prompts:
+      - AI Context Prompt Backend: ai-prompt.md
+      - AI Context Prompt Frontend: FRONTEND_LLM_PROMPT.md
+
   - FCube CLI:
-    - Introduction: fcube/index.md
-    - Getting Started: fcube/getting-started.md
-    - Commands Reference: fcube/commands.md
-    - Generated Architecture: fcube/architecture.md
-    - Plugin System: fcube/plugins.md
-    - Contributing: fcube/contributing.md
+      - Introduction: fcube/index.md
+      - Getting Started: fcube/getting-started.md
+      - Commands Reference: fcube/commands.md
+      - Generated Architecture: fcube/architecture.md
+      - Plugin System: fcube/plugins.md
+      - Contributing: fcube/contributing.md
 
 copyright: Copyright &copy; 2024 - 2026 Hybridinteractive Consultancy (HIC)
