@@ -1,5 +1,8 @@
 # Architecture & Development Guide
 
+Copy the text block below to use as an AI prompt (e.g., in `.cursorrules` or Claude/ChatGPT instructions) or simply share it as a reference guide for developers.
+
+```markdown
 This guide outlines the architecture and development conventions for our Modular Monolith based on Domain-Driven Design (DDD). The stack primarily utilizes FastAPI, SQLAlchemy 2.0, and Pydantic. It serves as a structured reference for both internal developers and AI coding assistants.
 
 All codebase contributions and architectural additions MUST strictly adhere to the following rules:
@@ -49,3 +52,4 @@ When building an endpoint or feature, execute and reason in this specific order:
 3. Orchestrate logic and transaction commits in `services/`.
 4. Register the new Service / dependencies in `dependencies.py`.
 5. Expose the HTTP endpoint in `routes/` using DI.
+```
